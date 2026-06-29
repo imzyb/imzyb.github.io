@@ -366,6 +366,33 @@ img { max-width: 100%; height: auto; }
 
 .sidebar-tags .tag:hover { opacity: .7; }
 
+/* POST COVER IMAGES */
+.post-cover {
+  margin: -20px -24px 16px;
+  border-radius: var(--radius) var(--radius) 0 0;
+  overflow: hidden;
+  max-height: 200px;
+}
+
+.post-cover img {
+  width: 100%; height: auto;
+  display: block;
+  object-fit: cover;
+}
+
+.post-cover-full {
+  margin: 0 0 20px;
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.post-cover-full img {
+  width: 100%; height: auto;
+  display: block;
+  object-fit: cover;
+  border-radius: var(--radius);
+}
+
 /* TAGS CLOUD PAGE */
 .tags-cloud {
   display: flex; gap: 8px; flex-wrap: wrap;
