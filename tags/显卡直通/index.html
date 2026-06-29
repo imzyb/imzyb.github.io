@@ -20,19 +20,20 @@
   <body class="page-archive">
     <header class="header">
   <div class="header-inner">
-    <a href="/" class="logo">Sam&#39;s Blog</a>
+    <a href="/" class="logo">[Sam&#39;s Blog]</a>
     <nav class="nav">
-      <a href="/archives">Archives</a>
+      <a href="/">Home</a>
+      <a href="/archives">Archive</a>
       <a href="/categories">Categories</a>
       <a href="/tags">Tags</a>
     </nav>
     <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme">
-      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
     </button>
   </div>
 </header>
-    <main class="main"><div class="container">
-  <div class="posts">
+    <main class="main"><div class="home-wrap">
+  <div class="posts-section">
     
       
       <article class="post-card">
@@ -80,9 +81,15 @@ BIOS 中已开启 VT-D（Intel Virtualization Technology for Directed I&#x2F;O�
   </div>
   <aside class="sidebar">
     <div class="sidebar-card">
-      <img class="avatar" src="/img/logo.png" alt="avatar">
-      <div class="sidebar-name">Sam</div>
-      <div class="sidebar-bio">记录技术，分享生活。</div>
+      <div class="profile-header">
+        <img class="avatar" src="/img/logo.png" alt="avatar">
+        <div class="profile-info">
+          <div class="profile-name">Sam</div>
+          <div class="profile-id">Auth_85</div>
+        </div>
+      </div>
+      <hr class="profile-divider">
+      <div class="profile-subtitle">记录技术，分享生活。</div>
       <div class="sidebar-social">
         
           
@@ -101,21 +108,21 @@ BIOS 中已开启 VT-D（Intel Virtualization Technology for Directed I&#x2F;O�
 </div></main>
     <footer class="footer">
   <div class="footer-inner">
-    <p>&copy; 2026 Sam. Powered by <a href="https://hexo.io" target="_blank" rel="noopener">Hexo</a> &amp; <a href="https://github.com/imzyb/migo" target="_blank" rel="noopener">MiGo</a>.</p>
+    <p>© 2026 Sam<br>Powered by <a href="https://hexo.io" target="_blank" rel="noopener">Hexo</a> &amp; <a href="https://github.com/imzyb/migo" target="_blank" rel="noopener">MiGo</a> <span>✦</span> Non_Collaborative_Entity // Protocol_V.1.0</p>
   </div>
 </footer>
 <script>
 (function() {
-  var toggle = document.getElementById('themeToggle');
-  if (toggle) {
-    toggle.addEventListener('click', function() {
-      var html = document.documentElement;
-      var theme = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
-      html.setAttribute('data-theme', theme);
-      try { localStorage.setItem('migo-theme', theme); } catch(e) {}
+  var t = document.getElementById('themeToggle');
+  if (t) {
+    t.addEventListener('click', function() {
+      var h = document.documentElement;
+      var s = h.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+      h.setAttribute('data-theme', s);
+      try { localStorage.setItem('migo-theme', s); } catch(e) {}
     });
-    var stored = (function(){ try { return localStorage.getItem('migo-theme'); } catch(e) {} })();
-    if (stored) document.documentElement.setAttribute('data-theme', stored);
+    var st = (function(){ try { return localStorage.getItem('migo-theme'); } catch(e) {} })();
+    if (st) document.documentElement.setAttribute('data-theme', st);
   }
 })();
 </script>
