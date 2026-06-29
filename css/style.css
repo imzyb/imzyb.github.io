@@ -180,6 +180,7 @@ img { max-width: 100%; height: auto; }
   display: flex; gap: 40px;
   max-width: 860px; margin: 0 auto;
   padding: 40px 24px;
+  flex-direction: row-reverse;
 }
 
 .posts-section { flex: 1; min-width: 0; max-width: 600px; }
@@ -241,6 +242,56 @@ img { max-width: 100%; height: auto; }
 }
 
 .sidebar-social a:hover { background: rgba(0, 255, 157, .25); }
+
+/* SIDEBAR STATS */
+.profile-stats {
+  display: flex; gap: 2px; margin-bottom: 2px;
+}
+
+.stat {
+  flex: 1; text-align: center;
+  padding: 8px 4px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+}
+
+.stat-label {
+  display: block; font-size: .6rem;
+  color: var(--text-muted); text-transform: uppercase;
+  letter-spacing: .3px; margin-bottom: 2px;
+}
+
+.stat-value {
+  display: block; font-size: .85rem;
+  font-weight: 700; color: var(--accent);
+}
+
+/* SIDEBAR LINKS */
+.profile-section-title {
+  font-size: .65rem; font-weight: 600;
+  color: var(--text-muted); text-transform: uppercase;
+  letter-spacing: .5px; margin-bottom: 6px;
+}
+
+.profile-links {
+  display: flex; gap: 4px; flex-wrap: wrap;
+}
+
+.profile-links a {
+  font-size: .7rem; padding: 2px 8px;
+  border-radius: 3px;
+  border: 1px solid var(--border);
+  color: var(--text-soft);
+  transition: border-color .15s, color .15s;
+}
+
+.profile-links a:hover { border-color: var(--accent); color: var(--accent); }
+
+/* CARD OVERFLOW FIX */
+.post-card { overflow: hidden; }
+.post-excerpt { word-wrap: break-word; overflow-wrap: break-word; }
+.post-excerpt img { max-width: 100%; height: auto; }
+.post-excerpt pre, .post-excerpt code { white-space: pre-wrap; word-break: break-word; }
 
 /* FULL POST */
 .post-full { max-width: 640px; margin: 0 auto; }
