@@ -177,13 +177,13 @@ img { max-width: 100%; height: auto; }
 
 /* HOMEPAGE LAYOUT */
 .home-wrap {
-  display: flex; gap: 40px;
+  display: flex; gap: 24px;
   max-width: 860px; margin: 0 auto;
   padding: 40px 24px;
   flex-direction: row-reverse;
 }
 
-.posts-section { flex: 1; min-width: 0; max-width: 600px; }
+.posts-section { flex: 1; min-width: 0; }
 
 /* SIDEBAR / PROFILE */
 .sidebar { width: 200px; flex-shrink: 0; }
