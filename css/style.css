@@ -354,7 +354,7 @@ img { max-width: 100%; height: auto; }
 .post-content a { word-break: break-all; }
 
 /* FULL POST */
-.post-full { max-width: 640px; margin: 0 auto; }
+.post-full { margin: 0 auto; }
 
 .post-full-header { margin-bottom: 28px; }
 
