@@ -335,6 +335,37 @@ img { max-width: 100%; height: auto; }
   flex-shrink: 0;
 }
 
+/* SIDEBAR LIST CARDS */
+.sidebar-card-list { margin-top: 12px; }
+
+.sidebar-list-item {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 6px 0; border-bottom: 1px solid var(--border);
+  font-size: .8rem; color: var(--text-soft);
+  transition: color .15s;
+}
+
+.sidebar-list-item:last-child { border-bottom: none; }
+.sidebar-list-item:hover { color: var(--accent); }
+
+.sidebar-count {
+  font-size: .68rem; color: var(--text-muted);
+  background: var(--accent-dim); padding: 0 6px;
+  border-radius: 3px; line-height: 1.5;
+}
+
+.sidebar-tags {
+  display: flex; gap: 4px; flex-wrap: wrap;
+}
+
+.sidebar-tags .tag {
+  font-size: .7rem; padding: 2px 8px;
+  border-radius: 3px; background: var(--accent-dim);
+  color: var(--accent);
+}
+
+.sidebar-tags .tag:hover { opacity: .7; }
+
 /* CARD OVERFLOW FIX */
 .post-card { overflow: hidden; }
 .post-excerpt {
