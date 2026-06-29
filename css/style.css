@@ -366,6 +366,28 @@ img { max-width: 100%; height: auto; }
 
 .sidebar-tags .tag:hover { opacity: .7; }
 
+/* TAGS CLOUD PAGE */
+.tags-cloud {
+  display: flex; gap: 8px; flex-wrap: wrap;
+  max-width: 600px;
+}
+
+.tag-lg {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 6px 14px; border-radius: 4px;
+  font-size: .82rem; font-weight: 600;
+  background: var(--accent-dim); color: var(--accent);
+  border: 1px solid var(--border);
+  transition: border-color .15s;
+}
+
+.tag-lg:hover { border-color: var(--accent); opacity: .8; }
+
+.tag-count {
+  font-size: .68rem; font-weight: 400;
+  color: var(--text-muted);
+}
+
 /* CARD OVERFLOW FIX */
 .post-card { overflow: hidden; }
 .post-excerpt {
