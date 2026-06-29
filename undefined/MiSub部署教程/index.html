@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark">
+  <head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="author" content="Sam">
+<link rel="icon" href="/img/logo.png">
+<title>MiSub 部署教程 — 轻量级代理订阅管理面板</title>
+<meta name="description" content="MiSub 是一款部署在 Cloudflare Pages 上的轻量级代理订阅管理面板，本文详细介绍了从 Fork 仓库到完成部署的完整流程。">
+<meta name="description" content="MiSub 是一款部署在 Cloudflare Pages 上的轻量级代理订阅管理面板，本文详细介绍了从 Fork 仓库到完成部署的完整流程。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="MiSub 部署教程 — 轻量级代理订阅管理面板">
+<meta property="og:url" content="https://imzyb.github.io/undefined/MiSub%E9%83%A8%E7%BD%B2%E6%95%99%E7%A8%8B/index.html">
+<meta property="og:site_name" content="Sam&#39;s Blog">
+<meta property="og:description" content="MiSub 是一款部署在 Cloudflare Pages 上的轻量级代理订阅管理面板，本文详细介绍了从 Fork 仓库到完成部署的完整流程。">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2026-06-29T13:19:16.000Z">
+<meta property="article:modified_time" content="2026-06-29T13:20:00.091Z">
+<meta property="article:author" content="Sam">
+<meta name="twitter:card" content="summary">
+<link rel="stylesheet" href="/css/style.css">
+<meta name="generator" content="Hexo 7.3.0"></head>
+  <body class="page-post">
+    <header class="header">
+  <div class="header-inner">
+    <a href="/" class="logo">Sam&#39;s Blog</a>
+    <nav class="nav">
+      <a href="/archives">Archives</a>
+      <a href="/categories">Categories</a>
+      <a href="/tags">Tags</a>
+    </nav>
+    <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme">
+      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+    </button>
+  </div>
+</header>
+    <main class="main"><div class="container container-narrow">
+  <article class="post-full">
+    <header class="post-full-header">
+      <h1 class="post-full-title">MiSub 部署教程 — 轻量级代理订阅管理面板</h1>
+      <div class="post-full-meta">
+        <time>6月 29, 2026</time>
+        
+        
+          <span>3k words</span>
+          <span>11 min read</span>
+        
+      </div>
+      
+    </header>
+    <div class="post-content"><blockquote>
+<p><strong>MiSub</strong> 是一款部署在 Cloudflare Pages 上的轻量级代理订阅管理面板。它可以帮你管理多个上游订阅链接和手动节点，自由组合成不同场景的订阅配置，并通过可视化的<strong>算子链</strong>（Operator Chain）对节点进行过滤、重命名、排序、去重等处理，最终生成 Clash、Sing-Box、Surge、Loon、Quantumult X、Shadowrocket 等主流客户端可直接使用的订阅链接。</p>
+</blockquote>
+<p><strong>版本：</strong> v2.7.0 | <strong>协议：</strong> MIT | <strong>仓库：</strong> <a target="_blank" rel="noopener" href="https://github.com/imzyb/MiSub">github.com&#x2F;imzyb&#x2F;MiSub</a></p>
+<hr>
+<h2 id="目录"><a href="#目录" class="headerlink" title="目录"></a>目录</h2><ul>
+<li><a href="#%E5%8A%9F%E8%83%BD%E6%A6%82%E8%A7%88">功能概览</a></li>
+<li><a href="#%E5%89%8D%E7%BD%AE%E5%87%86%E5%A4%87">前置准备</a></li>
+<li><a href="#%E4%B8%80%E9%94%AE%E9%83%A8%E7%BD%B2cloudflare-pages--git">一键部署（Cloudflare Pages + Git）</a></li>
+<li><a href="#%E9%85%8D%E7%BD%AE%E5%AD%98%E5%82%A8%E7%BB%91%E5%AE%9A">配置存储绑定</a><ul>
+<li><a href="#kv-%E5%91%BD%E5%90%8D%E7%A9%BA%E9%97%B4%E5%BF%85%E9%9C%80">KV 命名空间（必需）</a></li>
+<li><a href="#d1-%E6%95%B0%E6%8D%AE%E5%BA%93%E6%8E%A8%E8%8D%90">D1 数据库（推荐）</a></li>
+</ul>
+</li>
+<li><a href="#%E8%AE%BE%E7%BD%AE%E7%8E%AF%E5%A2%83%E5%8F%98%E9%87%8F">设置环境变量</a></li>
+<li><a href="#%E9%85%8D%E7%BD%AE-cron-%E5%AE%9A%E6%97%B6%E4%BB%BB%E5%8A%A1">配置 Cron 定时任务</a></li>
+<li><a href="#%E5%AE%8C%E6%88%90%E9%83%A8%E7%BD%B2%E4%B8%8E%E7%99%BB%E5%BD%95">完成部署与登录</a></li>
+<li><a href="#%E6%9C%AC%E5%9C%B0%E5%BC%80%E5%8F%91%E9%80%89%E8%AF%BB">本地开发（选读）</a></li>
+<li><a href="#%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98">常见问题</a></li>
+</ul>
+<hr>
+<h2 id="功能概览"><a href="#功能概览" class="headerlink" title="功能概览"></a>功能概览</h2><table>
+<thead>
+<tr>
+<th>功能</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>订阅管理</td>
+<td>管理多个机场订阅链接，自动获取节点信息</td>
+</tr>
+<tr>
+<td>手动节点</td>
+<td>支持 Shadowsocks &#x2F; VMess &#x2F; VLESS &#x2F; Trojan &#x2F; Hysteria2 &#x2F; TUIC 等十余种协议</td>
+</tr>
+<tr>
+<td>节点分组</td>
+<td>可将节点分组排序，添加备注、流量、到期时间等信息</td>
+</tr>
+<tr>
+<td>场景配置（Profiles）</td>
+<td>自由组合订阅源和手动节点分组，按场景产出不同配置</td>
+</tr>
+<tr>
+<td>算子链（Operator Chain）</td>
+<td>可视化流水线：过滤 → 正则重命名 → 脚本&#x2F;DSL → 排序 → 智能去重</td>
+</tr>
+<tr>
+<td>多客户端输出</td>
+<td>Clash&#x2F;Mihomo、Sing-Box、Surge、Loon、Quantumult X、Shadowrocket、V2rayN&#x2F;Ng、base64</td>
+</tr>
+<tr>
+<td>内置模板</td>
+<td>ACL4SSR 风格规则集、区域分组、策略组、自定义规则模板</td>
+</tr>
+<tr>
+<td>自定义公开页</td>
+<td>发布公开浏览页或沉浸式伪装页，支持 HTML 渲染</td>
+</tr>
+<tr>
+<td>存储可选</td>
+<td>Cloudflare KV（简单）或 D1（高写入、结构化存储）</td>
+</tr>
+<tr>
+<td>通知与运维</td>
+<td>Telegram 通知、定时刷新、备份恢复、操作日志、系统诊断</td>
+</tr>
+<tr>
+<td>现代 UI</td>
+<td>响应式 Vue 3 界面，支持亮&#x2F;暗主题、中&#x2F;英文切换</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="前置准备"><a href="#前置准备" class="headerlink" title="前置准备"></a>前置准备</h2><p>在开始部署之前，你需要准备好以下内容：</p>
+<ol>
+<li><strong>一个 GitHub 账号</strong> — 用来 Fork 项目仓库</li>
+<li><strong>一个 Cloudflare 账号</strong> — 用来部署 Pages 和创建 KV&#x2F;D1</li>
+<li><strong>一个域名（可选）</strong> — 可在 Cloudflare 上绑定自定义域名</li>
+</ol>
+<blockquote>
+<p>所有操作都可在免费额度内完成，Cloudflare Pages 的免费计划足够个人和小团队使用。</p>
+</blockquote>
+<hr>
+<h2 id="一键部署（Cloudflare-Pages-Git）"><a href="#一键部署（Cloudflare-Pages-Git）" class="headerlink" title="一键部署（Cloudflare Pages + Git）"></a>一键部署（Cloudflare Pages + Git）</h2><p>这是官方推荐的部署方式，只需在 Cloudflare 控制台中点几下即可完成。</p>
+<h3 id="第-1-步：Fork-项目仓库"><a href="#第-1-步：Fork-项目仓库" class="headerlink" title="第 1 步：Fork 项目仓库"></a>第 1 步：Fork 项目仓库</h3><ol>
+<li>访问项目地址：<a target="_blank" rel="noopener" href="https://github.com/imzyb/MiSub">https://github.com/imzyb/MiSub</a></li>
+<li>点击右上角的 <strong>Fork</strong> 按钮，将仓库 Fork 到自己的 GitHub 账号下</li>
+</ol>
+<h3 id="第-2-步：连接到-Cloudflare-Pages"><a href="#第-2-步：连接到-Cloudflare-Pages" class="headerlink" title="第 2 步：连接到 Cloudflare Pages"></a>第 2 步：连接到 Cloudflare Pages</h3><ol>
+<li>登录 <a target="_blank" rel="noopener" href="https://dash.cloudflare.com/">Cloudflare Dashboard</a></li>
+<li>左侧菜单选择 <strong>Workers &amp; Pages</strong></li>
+<li>点击 <strong>Create application</strong> → 选择 <strong>Pages</strong> 标签页</li>
+<li>点击 <strong>Connect to Git</strong></li>
+</ol>
+<h3 id="第-3-步：选择仓库"><a href="#第-3-步：选择仓库" class="headerlink" title="第 3 步：选择仓库"></a>第 3 步：选择仓库</h3><ol>
+<li>授权 Cloudflare 访问你的 GitHub 账号（首次需要）</li>
+<li>在仓库列表中找到你刚才 Fork 的 <code>MiSub</code> 仓库</li>
+<li>点击 <strong>Begin setup</strong></li>
+</ol>
+<h3 id="第-4-步：配置构建设置"><a href="#第-4-步：配置构建设置" class="headerlink" title="第 4 步：配置构建设置"></a>第 4 步：配置构建设置</h3><p>在 <strong>Set up builds and deployments</strong> 页面，填写以下内容：</p>
+<table>
+<thead>
+<tr>
+<th>配置项</th>
+<th>值</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Framework preset</strong></td>
+<td><code>Vue</code></td>
+</tr>
+<tr>
+<td><strong>Build command</strong></td>
+<td><code>npm run build</code></td>
+</tr>
+<tr>
+<td><strong>Build output directory</strong></td>
+<td><code>dist</code></td>
+</tr>
+<tr>
+<td><strong>Root directory</strong></td>
+<td>（留空，使用仓库根目录）</td>
+</tr>
+</tbody></table>
+<p>保持其他选项为默认值，点击 <strong>Save and Deploy</strong>。</p>
+<h3 id="第-5-步：等待首次部署"><a href="#第-5-步：等待首次部署" class="headerlink" title="第 5 步：等待首次部署"></a>第 5 步：等待首次部署</h3><p>Cloudflare 会自动拉取代码、安装依赖并执行构建。首次部署大约需要 1-2 分钟。</p>
+<p>部署完成后，你会得到一个 <code>https://&lt;project-name&gt;.pages.dev</code> 的域名。此时访问会看到登录页面，但还没有配置存储绑定，<strong>不要急着登录</strong>，继续下一步。</p>
+<hr>
+<h2 id="配置存储绑定"><a href="#配置存储绑定" class="headerlink" title="配置存储绑定"></a>配置存储绑定</h2><p>MiSub 需要至少一个 KV 命名空间来存储数据，同时强烈建议创建 D1 数据库以获得更好的性能和结构化存储。</p>
+<h3 id="KV-命名空间（必需）"><a href="#KV-命名空间（必需）" class="headerlink" title="KV 命名空间（必需）"></a>KV 命名空间（必需）</h3><h4 id="创建-KV-命名空间"><a href="#创建-KV-命名空间" class="headerlink" title="创建 KV 命名空间"></a>创建 KV 命名空间</h4><p>在 Cloudflare Dashboard 中：</p>
+<ol>
+<li>左侧菜单选择 <strong>Workers &amp; Pages</strong> → <strong>KV</strong></li>
+<li>点击 <strong>Create a namespace</strong></li>
+<li>命名空间名称填入 <code>misub-kv</code>（或你喜欢的名字）</li>
+<li>点击 <strong>Create</strong></li>
+</ol>
+<h4 id="绑定到-Pages-项目"><a href="#绑定到-Pages-项目" class="headerlink" title="绑定到 Pages 项目"></a>绑定到 Pages 项目</h4><ol>
+<li>进入你的 Pages 项目页面</li>
+<li>点击 <strong>Settings</strong> → <strong>Functions</strong> → <strong>KV namespace bindings</strong></li>
+<li>点击 <strong>Add binding</strong></li>
+<li>填写：<ul>
+<li><strong>Variable name:</strong> <code>MISUB_KV</code></li>
+<li><strong>KV namespace:</strong> 选择刚才创建的 <code>misub-kv</code></li>
+</ul>
+</li>
+<li>点击 <strong>Save</strong></li>
+</ol>
+<h3 id="D1-数据库（推荐）"><a href="#D1-数据库（推荐）" class="headerlink" title="D1 数据库（推荐）"></a>D1 数据库（推荐）</h3><p>D1 是 Cloudflare 的原生 SQLite 数据库，写入性能优于 KV，适合订阅条目较多的场景。</p>
+<h4 id="创建-D1-数据库"><a href="#创建-D1-数据库" class="headerlink" title="创建 D1 数据库"></a>创建 D1 数据库</h4><p>有两种方式创建：</p>
+<p><strong>方式一：使用 Wrangler CLI（推荐）</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 安装 wrangler（如果还没有）</span></span><br><span class="line">npm install -g wrangler</span><br><span class="line"></span><br><span class="line"><span class="comment"># 登录 Cloudflare</span></span><br><span class="line">wrangler login</span><br><span class="line"></span><br><span class="line"><span class="comment"># 创建 D1 数据库</span></span><br><span class="line">wrangler d1 create misub</span><br><span class="line"></span><br><span class="line"><span class="comment"># 初始化表结构</span></span><br><span class="line">wrangler d1 execute misub --file=schema.sql --remote</span><br></pre></td></tr></table></figure>
+
+<p><strong>方式二：在 Cloudflare Dashboard 中创建</strong></p>
+<ol>
+<li>左侧菜单选择 <strong>Workers &amp; Pages</strong> → <strong>D1</strong></li>
+<li>点击 <strong>Create database</strong></li>
+<li>名称填入 <code>misub</code>，点击 <strong>Create</strong></li>
+<li>创建完成后，进入数据库页面</li>
+<li>点击 <strong>Console</strong>（控制台）标签页</li>
+<li>将 <code>schema.sql</code> 中的 SQL 语句复制粘贴到控制台中执行：</li>
+</ol>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">CREATE</span> <span class="keyword">TABLE</span> IF <span class="keyword">NOT</span> <span class="keyword">EXISTS</span> subscriptions (</span><br><span class="line">    id TEXT <span class="keyword">PRIMARY</span> KEY,</span><br><span class="line">    data TEXT <span class="keyword">NOT</span> <span class="keyword">NULL</span>,</span><br><span class="line">    created_at DATETIME <span class="keyword">DEFAULT</span> <span class="built_in">CURRENT_TIMESTAMP</span>,</span><br><span class="line">    updated_at DATETIME <span class="keyword">DEFAULT</span> <span class="built_in">CURRENT_TIMESTAMP</span></span><br><span class="line">);</span><br><span class="line"></span><br><span class="line"><span class="keyword">CREATE</span> <span class="keyword">TABLE</span> IF <span class="keyword">NOT</span> <span class="keyword">EXISTS</span> profiles (</span><br><span class="line">    id TEXT <span class="keyword">PRIMARY</span> KEY,</span><br><span class="line">    data TEXT <span class="keyword">NOT</span> <span class="keyword">NULL</span>,</span><br><span class="line">    created_at DATETIME <span class="keyword">DEFAULT</span> <span class="built_in">CURRENT_TIMESTAMP</span>,</span><br><span class="line">    updated_at DATETIME <span class="keyword">DEFAULT</span> <span class="built_in">CURRENT_TIMESTAMP</span></span><br><span class="line">);</span><br><span class="line"></span><br><span class="line"><span class="keyword">CREATE</span> <span class="keyword">TABLE</span> IF <span class="keyword">NOT</span> <span class="keyword">EXISTS</span> settings (</span><br><span class="line">    key TEXT <span class="keyword">PRIMARY</span> KEY,</span><br><span class="line">    <span class="keyword">value</span> TEXT <span class="keyword">NOT</span> <span class="keyword">NULL</span>,</span><br><span class="line">    created_at DATETIME <span class="keyword">DEFAULT</span> <span class="built_in">CURRENT_TIMESTAMP</span>,</span><br><span class="line">    updated_at DATETIME <span class="keyword">DEFAULT</span> <span class="built_in">CURRENT_TIMESTAMP</span></span><br><span class="line">);</span><br><span class="line"></span><br><span class="line"><span class="keyword">CREATE</span> INDEX IF <span class="keyword">NOT</span> <span class="keyword">EXISTS</span> idx_subscriptions_updated_at <span class="keyword">ON</span> subscriptions(updated_at);</span><br><span class="line"><span class="keyword">CREATE</span> INDEX IF <span class="keyword">NOT</span> <span class="keyword">EXISTS</span> idx_profiles_updated_at <span class="keyword">ON</span> profiles(updated_at);</span><br><span class="line"><span class="keyword">CREATE</span> INDEX IF <span class="keyword">NOT</span> <span class="keyword">EXISTS</span> idx_settings_updated_at <span class="keyword">ON</span> settings(updated_at);</span><br></pre></td></tr></table></figure>
+
+<h4 id="绑定-D1-到-Pages-项目"><a href="#绑定-D1-到-Pages-项目" class="headerlink" title="绑定 D1 到 Pages 项目"></a>绑定 D1 到 Pages 项目</h4><ol>
+<li>进入你的 Pages 项目 → <strong>Settings</strong> → <strong>Functions</strong> → <strong>D1 database bindings</strong></li>
+<li>点击 <strong>Add binding</strong></li>
+<li>填写：<ul>
+<li><strong>Variable name:</strong> <code>MISUB_DB</code></li>
+<li><strong>D1 database:</strong> 选择刚才创建的 <code>misub</code></li>
+</ul>
+</li>
+<li>点击 <strong>Save</strong></li>
+</ol>
+<hr>
+<h2 id="设置环境变量"><a href="#设置环境变量" class="headerlink" title="设置环境变量"></a>设置环境变量</h2><p>环境变量在 Pages 项目的 <strong>Settings</strong> → <strong>Environment variables</strong> 中设置。</p>
+<h3 id="必需的环境变量"><a href="#必需的环境变量" class="headerlink" title="必需的环境变量"></a>必需的环境变量</h3><table>
+<thead>
+<tr>
+<th>变量名</th>
+<th>说明</th>
+<th>建议值</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>ADMIN_PASSWORD</code></td>
+<td>管理员登录密码</td>
+<td>设置一个强密码，留空则默认密码为 <code>admin</code></td>
+</tr>
+<tr>
+<td><code>COOKIE_SECRET</code></td>
+<td>Session 签名密钥</td>
+<td>生成一个随机字符串，如 <code>openssl rand -hex 32</code></td>
+</tr>
+</tbody></table>
+<h3 id="推荐设置的环境变量"><a href="#推荐设置的环境变量" class="headerlink" title="推荐设置的环境变量"></a>推荐设置的环境变量</h3><table>
+<thead>
+<tr>
+<th>变量名</th>
+<th>说明</th>
+<th>建议值</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>MISUB_PUBLIC_URL</code></td>
+<td>公开访问地址，用于生成订阅转换回调 URL</td>
+<td><code>https://你的项目名.pages.dev</code></td>
+</tr>
+<tr>
+<td><code>MISUB_CALLBACK_URL</code></td>
+<td>回调 URL 基础地址，优先级高于 <code>MISUB_PUBLIC_URL</code></td>
+<td>同上或自定义域名</td>
+</tr>
+<tr>
+<td><code>CRON_SECRET</code></td>
+<td>外部 Cron 触发器的密钥</td>
+<td>生成一个随机字符串</td>
+</tr>
+<tr>
+<td><code>CORS_ORIGINS</code></td>
+<td>允许跨域访问的来源（逗号分隔）</td>
+<td>一般留空</td>
+</tr>
+</tbody></table>
+<h3 id="Cron-相关环境变量（可选）"><a href="#Cron-相关环境变量（可选）" class="headerlink" title="Cron 相关环境变量（可选）"></a>Cron 相关环境变量（可选）</h3><table>
+<thead>
+<tr>
+<th>变量名</th>
+<th>默认值</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>ENVIRONMENT</code></td>
+<td><code>production</code></td>
+<td>运行环境标识</td>
+</tr>
+<tr>
+<td><code>ENABLE_CRON</code></td>
+<td><code>true</code></td>
+<td>是否启用 Cron 定时同步</td>
+</tr>
+<tr>
+<td><code>CRON_TYPE</code></td>
+<td><code>hourly-subscription-sync</code></td>
+<td>Cron 任务类型</td>
+</tr>
+<tr>
+<td><code>CRON_MAX_SYNC_COUNT</code></td>
+<td><code>50</code></td>
+<td>每次 Cron 最多同步的订阅数</td>
+</tr>
+<tr>
+<td><code>CRON_SYNC_TIMEOUT</code></td>
+<td><code>30000</code></td>
+<td>单个订阅同步超时时间（毫秒）</td>
+</tr>
+<tr>
+<td><code>CRON_ENABLE_PARALLEL</code></td>
+<td><code>true</code></td>
+<td>是否启用并行同步</td>
+</tr>
+</tbody></table>
+<h3 id="设置步骤"><a href="#设置步骤" class="headerlink" title="设置步骤"></a>设置步骤</h3><ol>
+<li>进入 Pages 项目 → <strong>Settings</strong> → <strong>Environment variables</strong></li>
+<li>在 <strong>Production</strong> 标签下，点击 <strong>Add variable</strong></li>
+<li>逐个添加上述变量名和值</li>
+<li>添加完成后，点击 <strong>Save</strong></li>
+</ol>
+<blockquote>
+<p><strong>注意：</strong> 修改环境变量后，需要<strong>重新部署</strong>才能生效。可以在 Pages 项目页面点击 <strong>Deployments</strong> → <strong>Deploy latest commit</strong> 来触发重新部署。</p>
+</blockquote>
+<hr>
+<h2 id="配置-Cron-定时任务"><a href="#配置-Cron-定时任务" class="headerlink" title="配置 Cron 定时任务"></a>配置 Cron 定时任务</h2><p>Cron 触发器可以让 MiSub 定时自动同步订阅内容，保持节点数据最新。</p>
+<h3 id="方式一：Cloudflare-Cron-Triggers（推荐，需付费计划）"><a href="#方式一：Cloudflare-Cron-Triggers（推荐，需付费计划）" class="headerlink" title="方式一：Cloudflare Cron Triggers（推荐，需付费计划）"></a>方式一：Cloudflare Cron Triggers（推荐，需付费计划）</h3><p>Cloudflare Pages 的 Cron Triggers 功能需要 <strong>Paid Plan</strong>（Workers Paid 计划）。</p>
+<ol>
+<li>进入 Pages 项目 → <strong>Settings</strong> → <strong>Functions</strong> → <strong>Cron Triggers</strong></li>
+<li>点击 <strong>Add Cron Trigger</strong></li>
+<li>输入 Cron 表达式：<ul>
+<li><code>0 * * * *</code> — 每小时同步一次（推荐）</li>
+<li><code>*/30 * * * *</code> — 每 30 分钟同步一次</li>
+<li><code>0 8 * * *</code> — 每天早上 8 点同步一次</li>
+</ul>
+</li>
+<li>点击 <strong>Save</strong></li>
+</ol>
+<h3 id="方式二：外部-Cron-服务（免费）"><a href="#方式二：外部-Cron-服务（免费）" class="headerlink" title="方式二：外部 Cron 服务（免费）"></a>方式二：外部 Cron 服务（免费）</h3><p>如果不想升级到付费计划，可以使用免费的第三方 Cron 服务来触发同步：</p>
+<p><strong>支持的触发方式：</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">GET https://你的项目.pages.dev/cron?secret=你的CRON_SECRET</span><br></pre></td></tr></table></figure>
+
+<p>或带 Bearer Token 的请求：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">curl -H <span class="string">&quot;Authorization: Bearer 你的CRON_SECRET&quot;</span> https://你的项目.pages.dev/cron</span><br></pre></td></tr></table></figure>
+
+<p><strong>推荐的外部 Cron 服务：</strong></p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://uptimerobot.com/">UptimeRobot</a> — 免费计划支持 5 分钟间隔的监控&#x2F;请求</li>
+<li><a target="_blank" rel="noopener" href="https://cron-job.org/">Cron-Job.org</a> — 免费计划支持每分钟执行</li>
+<li><a target="_blank" rel="noopener" href="https://www.easycron.com/">EasyCron</a> — 免费计划支持一定数量的定时任务</li>
+</ul>
+<hr>
+<h2 id="完成部署与登录"><a href="#完成部署与登录" class="headerlink" title="完成部署与登录"></a>完成部署与登录</h2><p>所有配置完成后，访问你的 Pages 项目地址（如 <code>https://misub.pages.dev</code>）：</p>
+<ol>
+<li><p>页面会自动跳转到登录页 <code>/login</code></p>
+</li>
+<li><p>使用你设置的管理员密码登录（默认密码为 <code>admin</code>）</p>
+</li>
+<li><p>登录后进入仪表盘，即可开始配置：</p>
+<ul>
+<li><strong>订阅管理</strong> — 添加你的机场订阅链接</li>
+<li><strong>手动节点</strong> — 添加手动搭建的节点</li>
+<li><strong>场景配置</strong> — 组合订阅源和节点分组，生成订阅配置</li>
+<li><strong>算子链</strong> — 配置节点过滤、重命名、排序规则</li>
+<li><strong>系统设置</strong> — 配置公开页、回调地址、Telegram 通知等</li>
+</ul>
+</li>
+</ol>
+<h2 id="绑定自定义域名（可选）"><a href="#绑定自定义域名（可选）" class="headerlink" title="绑定自定义域名（可选）"></a>绑定自定义域名（可选）</h2><p>如果你有自己的域名，可以将它绑定到 Cloudflare Pages：</p>
+<ol>
+<li>在 Cloudflare Dashboard 中将你的域名接入 Cloudflare（DNS 托管）</li>
+<li>进入 Pages 项目 → <strong>Custom domains</strong> → <strong>Set up a custom domain</strong></li>
+<li>输入你的域名（如 <code>misub.example.com</code>）</li>
+<li>Cloudflare 会自动添加 DNS 记录并下发 SSL 证书</li>
+<li>等待证书生效（通常 1-2 分钟）</li>
+<li>将 <code>MISUB_PUBLIC_URL</code> 环境变量更新为你的自定义域名</li>
+<li>重新部署</li>
+</ol>
+<hr>
+<h2 id="本地开发（选读）"><a href="#本地开发（选读）" class="headerlink" title="本地开发（选读）"></a>本地开发（选读）</h2><p>如果你想在本地开发和调试 MiSub，可以按以下步骤操作。</p>
+<h3 id="环境要求"><a href="#环境要求" class="headerlink" title="环境要求"></a>环境要求</h3><ul>
+<li>Node.js 20 或更高版本</li>
+<li>npm 或 pnpm</li>
+</ul>
+<h3 id="安装依赖"><a href="#安装依赖" class="headerlink" title="安装依赖"></a>安装依赖</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">git <span class="built_in">clone</span> https://github.com/imzyb/MiSub.git</span><br><span class="line"><span class="built_in">cd</span> MiSub</span><br><span class="line">npm install</span><br></pre></td></tr></table></figure>
+
+<h3 id="配置本地环境变量"><a href="#配置本地环境变量" class="headerlink" title="配置本地环境变量"></a>配置本地环境变量</h3><p>在项目根目录创建 <code>.dev.vars</code> 文件：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">ADMIN_PASSWORD=admin123</span><br><span class="line">JWT_SECRET=supersecretkey123</span><br><span class="line">COOKIE_SECRET=supersecretkey123</span><br></pre></td></tr></table></figure>
+
+<h3 id="启动开发服务器"><a href="#启动开发服务器" class="headerlink" title="启动开发服务器"></a>启动开发服务器</h3><p>需要同时启动两个终端：</p>
+<p><strong>终端 1 — 后端（Cloudflare Pages Functions）：</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">npm run dev:server -- --ip 0.0.0.0 --kv MISUB_KV --persist-to .wrangler/state-local</span><br></pre></td></tr></table></figure>
+
+<p>后端将在 <code>http://localhost:8787</code> 运行。</p>
+<p><strong>终端 2 — 前端（Vite 开发服务器）：</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">npm run dev</span><br></pre></td></tr></table></figure>
+
+<p>前端将在 <code>http://localhost:5173</code> 运行，Vite 会自动将 <code>/api</code> 和 <code>/sub/</code> 路径的请求代理到后端。</p>
+<h3 id="生产构建预览"><a href="#生产构建预览" class="headerlink" title="生产构建预览"></a>生产构建预览</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">npm run build     <span class="comment"># 构建生产版本到 dist/</span></span><br><span class="line">npm run preview   <span class="comment"># 本地预览生产构建</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="运行测试"><a href="#运行测试" class="headerlink" title="运行测试"></a>运行测试</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">npm <span class="built_in">test</span> -- --run        <span class="comment"># 运行所有测试</span></span><br><span class="line">npm run <span class="built_in">test</span>:coverage    <span class="comment"># 运行测试并生成覆盖率报告</span></span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="常见问题"><a href="#常见问题" class="headerlink" title="常见问题"></a>常见问题</h2><h3 id="Q1：部署完成后访问页面空白或报错？"><a href="#Q1：部署完成后访问页面空白或报错？" class="headerlink" title="Q1：部署完成后访问页面空白或报错？"></a>Q1：部署完成后访问页面空白或报错？</h3><ul>
+<li>确认 <strong>KV 命名空间绑定</strong> 已正确配置，变量名必须是 <code>MISUB_KV</code></li>
+<li>检查 <strong>环境变量</strong> 是否已保存并重新部署</li>
+<li>查看 Cloudflare Pages 的 <strong>Functions 日志</strong> 排查错误</li>
+</ul>
+<h3 id="Q2：如何更新到最新版本？"><a href="#Q2：如何更新到最新版本？" class="headerlink" title="Q2：如何更新到最新版本？"></a>Q2：如何更新到最新版本？</h3><p>如果你的部署是连接 Git 仓库的方式，只需在 Fork 的仓库中同步上游代码：</p>
+<ol>
+<li>在 GitHub 上同步 upstream 的最新代码</li>
+<li>Cloudflare Pages 会自动检测到新的提交并重新部署</li>
+<li>也可以在 Pages 项目页面手动点击 <strong>Deploy latest commit</strong></li>
+</ol>
+<p>也可以配置 GitHub Actions 自动同步上游（项目已自带 <code>fork-sync.yml</code> 工作流）。</p>
+<h3 id="Q3：KV-和-D1-应该选哪个？"><a href="#Q3：KV-和-D1-应该选哪个？" class="headerlink" title="Q3：KV 和 D1 应该选哪个？"></a>Q3：KV 和 D1 应该选哪个？</h3><table>
+<thead>
+<tr>
+<th>对比项</th>
+<th>KV</th>
+<th>D1</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>写入性能</td>
+<td>一般（最终一致性）</td>
+<td>较高（强一致性）</td>
+</tr>
+<tr>
+<td>查询能力</td>
+<td>按键查询</td>
+<td>完整 SQL 查询</td>
+</tr>
+<tr>
+<td>免费额度</td>
+<td>每天 1000 次写入</td>
+<td>每月 500 万行读取</td>
+</tr>
+<tr>
+<td>推荐场景</td>
+<td>订阅少、使用频率低</td>
+<td>订阅多、频繁刷新</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p><strong>建议：</strong> 大多数用户同时绑定 KV 和 D1。MiSub 会优先使用 D1，D1 不可用时回退到 KV。</p>
+</blockquote>
+<h3 id="Q4：订阅链接无法获取节点？"><a href="#Q4：订阅链接无法获取节点？" class="headerlink" title="Q4：订阅链接无法获取节点？"></a>Q4：订阅链接无法获取节点？</h3><ul>
+<li>检查网络环境，上游订阅链接是否可访问</li>
+<li>可在系统设置中配置 <strong>外部抓取代理</strong>（Vercel Fetch Proxy）来解决网络限制问题</li>
+<li>查看操作日志中的详细错误信息</li>
+</ul>
+<h3 id="Q5：如何导入外部订阅转换器？"><a href="#Q5：如何导入外部订阅转换器？" class="headerlink" title="Q5：如何导入外部订阅转换器？"></a>Q5：如何导入外部订阅转换器？</h3><p>MiSub 支持对接 subconverter 或 FatSheep 等外部转换后端，在 <strong>系统设置</strong> → <strong>订阅设置</strong> 中配置外部转换器地址即可。</p>
+<hr>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>MiSub 的部署流程可以概括为以下几步：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">Fork 仓库 → Cloudflare Pages 连接 Git → 创建 KV 绑定</span><br><span class="line">→ （可选）创建 D1 数据库并初始化 → 设置环境变量</span><br><span class="line">→ （可选）配置 Cron 触发器 → 重新部署 → 登录使用</span><br></pre></td></tr></table></figure>
+
+<p>整个部署过程在 Cloudflare 免费计划内即可完成，不需要购买任何付费服务。部署完成后，你就能拥有一个功能完整的私有订阅管理面板，随时随地管理你的代理节点和订阅配置。</p>
+<p>如果你在部署过程中遇到任何问题，欢迎在项目 <a target="_blank" rel="noopener" href="https://github.com/imzyb/MiSub/issues">GitHub Issues</a> 中提出。</p>
+<hr>
+<p><em>本文档最后更新于 2026 年 6 月，对应 MiSub v2.7.0 版本。</em></p>
+</div>
+    
+      <nav class="post-nav">
+        
+          <a class="prev" href="/undefined/MiGate%E9%83%A8%E7%BD%B2%E6%95%99%E7%A8%8B/">
+            <span class="nav-label">← Previous</span>
+            <span class="nav-title">MiGate 部署教程 — 轻量级 VPS 代理管理面板</span>
+          </a>
+        
+        
+          <a class="next" href="/undefined/%E7%94%A8Mihomo%E6%89%93%E9%80%A0%E6%9C%80%E5%BC%BA%E4%BB%A3%E7%90%86%E6%9C%BA/">
+            <span class="nav-label">Next →</span>
+            <span class="nav-title">在 Linux 上用 Mihomo 打造透明代理网关</span>
+          </a>
+        
+      </nav>
+    
+  </article>
+</div></main>
+    <footer class="footer">
+  <div class="footer-inner">
+    <p>&copy; 2026 Sam. Powered by <a href="https://hexo.io" target="_blank" rel="noopener">Hexo</a> &amp; <a href="https://github.com/imzyb/migo" target="_blank" rel="noopener">MiGo</a>.</p>
+  </div>
+</footer>
+<script>
+(function() {
+  var toggle = document.getElementById('themeToggle');
+  if (toggle) {
+    toggle.addEventListener('click', function() {
+      var html = document.documentElement;
+      var theme = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+      html.setAttribute('data-theme', theme);
+      try { localStorage.setItem('migo-theme', theme); } catch(e) {}
+    });
+    var stored = (function(){ try { return localStorage.getItem('migo-theme'); } catch(e) {} })();
+    if (stored) document.documentElement.setAttribute('data-theme', stored);
+  }
+})();
+</script>
+  </body>
+</html>

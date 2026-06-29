@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark">
+  <head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="author" content="Sam">
+<link rel="icon" href="/img/logo.png">
+<title>PVE 8 直通 N100 核显并开启 SR-IOV 虚拟化</title>
+<meta name="description" content="在 Proxmox VE 8 上直通 Intel N100 核显并启用 SR-IOV，实现多个虚拟机共享 GPU 硬件解码能力。">
+<meta name="description" content="在 Proxmox VE 8 上直通 Intel N100 核显并启用 SR-IOV，实现多个虚拟机共享 GPU 硬件解码能力。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="PVE 8 直通 N100 核显并开启 SR-IOV 虚拟化">
+<meta property="og:url" content="https://imzyb.github.io/undefined/PVE8%E7%9B%B4%E9%80%9A%E6%A0%B8%E6%98%BE%EF%BC%88N100%EF%BC%89%EF%BC%8C%E5%B9%B6%E5%BC%80%E5%90%AF%E8%99%9A%E6%8B%9F%E5%8C%96Sriov/index.html">
+<meta property="og:site_name" content="Sam&#39;s Blog">
+<meta property="og:description" content="在 Proxmox VE 8 上直通 Intel N100 核显并启用 SR-IOV，实现多个虚拟机共享 GPU 硬件解码能力。">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2024-09-24T15:20:35.000Z">
+<meta property="article:modified_time" content="2026-06-29T15:06:03.325Z">
+<meta property="article:author" content="Sam">
+<meta property="article:tag" content="PVE">
+<meta property="article:tag" content="N100">
+<meta property="article:tag" content="SR-IOV">
+<meta property="article:tag" content="虚拟化">
+<meta property="article:tag" content="显卡直通">
+<meta name="twitter:card" content="summary">
+<link rel="stylesheet" href="/css/style.css">
+<meta name="generator" content="Hexo 7.3.0"></head>
+  <body class="page-post">
+    <header class="header">
+  <div class="header-inner">
+    <a href="/" class="logo">Sam&#39;s Blog</a>
+    <nav class="nav">
+      <a href="/archives">Archives</a>
+      <a href="/categories">Categories</a>
+      <a href="/tags">Tags</a>
+    </nav>
+    <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme">
+      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+    </button>
+  </div>
+</header>
+    <main class="main"><div class="container container-narrow">
+  <article class="post-full">
+    <header class="post-full-header">
+      <h1 class="post-full-title">PVE 8 直通 N100 核显并开启 SR-IOV 虚拟化</h1>
+      <div class="post-full-meta">
+        <time>9月 24, 2024</time>
+        
+          <span class="post-category">服务器运维</span>
+        
+        
+          <span>807 words</span>
+          <span>3 min read</span>
+        
+      </div>
+      
+        <div class="post-full-tags">
+          
+            <a class="tag" href="/tags/PVE/">#PVE</a>
+          
+            <a class="tag" href="/tags/N100/">#N100</a>
+          
+            <a class="tag" href="/tags/SR-IOV/">#SR-IOV</a>
+          
+            <a class="tag" href="/tags/%E8%99%9A%E6%8B%9F%E5%8C%96/">#虚拟化</a>
+          
+            <a class="tag" href="/tags/%E6%98%BE%E5%8D%A1%E7%9B%B4%E9%80%9A/">#显卡直通</a>
+          
+        </div>
+      
+    </header>
+    <div class="post-content"><blockquote>
+<p>本文介绍在 <strong>Proxmox VE 8.1</strong> 系统上直通 Intel N100 核显并开启 SR-IOV（Single Root I&#x2F;O Virtualization）的完整步骤，让多个虚拟机可以共享 GPU 硬件解码能力。</p>
+</blockquote>
+<h2 id="前置条件"><a href="#前置条件" class="headerlink" title="前置条件"></a>前置条件</h2><ul>
+<li>硬件：Intel N100 或类似支持 SR-IOV 的处理器</li>
+<li>系统：Proxmox VE 8.1+</li>
+<li>BIOS 中已开启 <strong>VT-D</strong>（Intel Virtualization Technology for Directed I&#x2F;O）</li>
+</ul>
+<hr>
+<h2 id="一、开启-IOMMU"><a href="#一、开启-IOMMU" class="headerlink" title="一、开启 IOMMU"></a>一、开启 IOMMU</h2><h3 id="修改-GRUB-配置"><a href="#修改-GRUB-配置" class="headerlink" title="修改 GRUB 配置"></a>修改 GRUB 配置</h3><p>编辑 GRUB 配置文件：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">nano /etc/default/grub</span><br></pre></td></tr></table></figure>
+
+<p>找到 <code>GRUB_CMDLINE_LINUX_DEFAULT=&quot;quiet&quot;</code>，修改为：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">GRUB_CMDLINE_LINUX_DEFAULT=<span class="string">&quot;quiet intel_iommu=on i915.enable_guc=3 i915.max_vfs=7&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>参数说明：</p>
+<table>
+<thead>
+<tr>
+<th>参数</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>intel_iommu=on</code></td>
+<td>开启 Intel IOMMU</td>
+</tr>
+<tr>
+<td><code>i915.enable_guc=3</code></td>
+<td>启用 GuC&#x2F;HuC 固件，硬件编解码必需</td>
+</tr>
+<tr>
+<td><code>i915.max_vfs=7</code></td>
+<td>最大虚拟功能数量（根据需求调整）</td>
+</tr>
+</tbody></table>
+<h3 id="更新-GRUB-并重启"><a href="#更新-GRUB-并重启" class="headerlink" title="更新 GRUB 并重启"></a>更新 GRUB 并重启</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">update-grub</span><br><span class="line">reboot</span><br></pre></td></tr></table></figure>
+
+<h3 id="验证-IOMMU-是否开启"><a href="#验证-IOMMU-是否开启" class="headerlink" title="验证 IOMMU 是否开启"></a>验证 IOMMU 是否开启</h3><p>重启后运行：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">dmesg | grep -e DMAR -e IOMMU</span><br></pre></td></tr></table></figure>
+
+<p>正常输出应包含 <code>DMAR: IOMMU enabled</code>，例如：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">[    0.014745] ACPI: DMAR 0x00000000734DC000 000088 (v02 INTEL  EDK2     00000002      01000013)</span><br><span class="line">[    0.046876] DMAR: IOMMU enabled</span><br><span class="line">[    0.106676] DMAR: Host address width 39</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="二、加载-VFIO-内核模块"><a href="#二、加载-VFIO-内核模块" class="headerlink" title="二、加载 VFIO 内核模块"></a>二、加载 VFIO 内核模块</h2><p>编辑 <code>/etc/modules</code>：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">nano /etc/modules</span><br></pre></td></tr></table></figure>
+
+<p>添加以下内容：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">vfio</span><br><span class="line">vfio_iommu_type1</span><br><span class="line">vfio_pci</span><br><span class="line">vfio_virqfd</span><br></pre></td></tr></table></figure>
+
+<p>这些模块用于将 PCIe 设备 passthrough 给虚拟机时启用 IOMMU 分组转换，提高未使用 PCIe 设备的性能。</p>
+<hr>
+<h2 id="三、安装-SR-IOV-驱动"><a href="#三、安装-SR-IOV-驱动" class="headerlink" title="三、安装 SR-IOV 驱动"></a>三、安装 SR-IOV 驱动</h2><h3 id="查询内核版本"><a href="#查询内核版本" class="headerlink" title="查询内核版本"></a>查询内核版本</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">uname</span> -r</span><br></pre></td></tr></table></figure>
+
+<p>示例输出：<code>6.5.11-7-pve</code></p>
+<h3 id="安装内核-Headers"><a href="#安装内核-Headers" class="headerlink" title="安装内核 Headers"></a>安装内核 Headers</h3><p>到 <a target="_blank" rel="noopener" href="http://mirrors.ustc.edu.cn/proxmox/debian/dists/bookworm/pve-no-subscription/binary-amd64/">中科大 PVE 镜像源</a> 下载对应版本的 headers 包：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">wget http://mirrors.ustc.edu.cn/proxmox/debian/dists/bookworm/pve-no-subscription/binary-amd64/proxmox-headers-6.5.11-7-pve_6.5.11-7_amd64.deb</span><br><span class="line">dpkg -i proxmox-headers-6.5.11-7-pve_6.5.11-7_amd64.deb</span><br></pre></td></tr></table></figure>
+
+<h3 id="安装依赖"><a href="#安装依赖" class="headerlink" title="安装依赖"></a>安装依赖</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">apt install -y build-essential git unzip dkms</span><br></pre></td></tr></table></figure>
+
+<h3 id="下载-SR-IOV-DKMS-驱动"><a href="#下载-SR-IOV-DKMS-驱动" class="headerlink" title="下载 SR-IOV DKMS 驱动"></a>下载 SR-IOV DKMS 驱动</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">git <span class="built_in">clone</span> https://github.com/strongtz/i915-sriov-dkms.git</span><br><span class="line"><span class="built_in">mv</span> i915-sriov-dkms /usr/src</span><br></pre></td></tr></table></figure>
+
+<h3 id="修改-DKMS-配置"><a href="#修改-DKMS-配置" class="headerlink" title="修改 DKMS 配置"></a>修改 DKMS 配置</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">nano /usr/src/i915-sriov-dkms/dkms.conf</span><br></pre></td></tr></table></figure>
+
+<p>按实际内核版本修改：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">PACKAGE_NAME=&quot;i915-sriov-dkms&quot;</span><br><span class="line">PACKAGE_VERSION=&quot;6.5&quot;</span><br></pre></td></tr></table></figure>
+
+<h3 id="安装驱动"><a href="#安装驱动" class="headerlink" title="安装驱动"></a>安装驱动</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">dkms install -m i915-sriov -v dkms --force</span><br></pre></td></tr></table></figure>
+
+<h3 id="验证安装"><a href="#验证安装" class="headerlink" title="验证安装"></a>验证安装</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">dkms status</span><br></pre></td></tr></table></figure>
+
+<p>正常输出：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">i915-sriov-dkms/6.5, 6.5.11-7-pve, x86_64: installed</span><br></pre></td></tr></table></figure>
+
+<h3 id="重启"><a href="#重启" class="headerlink" title="重启"></a>重启</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">reboot</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="四、配置开机启动-SR-IOV"><a href="#四、配置开机启动-SR-IOV" class="headerlink" title="四、配置开机启动 SR-IOV"></a>四、配置开机启动 SR-IOV</h2><p>创建开机脚本，自动创建虚拟功能：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">echo</span> <span class="string">&#x27;#!/bin/bash&#x27;</span> &gt;&gt; /etc/rc.local</span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;echo 7 &gt; /sys/devices/pci0000:00/0000:00:02.0/sriov_numvfs&quot;</span> &gt;&gt; /etc/rc.local</span><br><span class="line"><span class="built_in">chmod</span> +x /etc/rc.local</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p><code>echo 7</code> 表示开启 7 个 VF（Virtual Function），可根据需求改为其他数值。</p>
+</blockquote>
+<h3 id="验证-SR-IOV"><a href="#验证-SR-IOV" class="headerlink" title="验证 SR-IOV"></a>验证 SR-IOV</h3><p>重启后使用 <code>lspci</code> 查看是否出现多个 <code>0000:00:02</code> 设备：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">lspci | grep 00:02</span><br></pre></td></tr></table></figure>
+
+<p>若能列出多个虚拟功能设备，即代表成功。</p>
+<hr>
+<h2 id="五、虚拟机配置要求"><a href="#五、虚拟机配置要求" class="headerlink" title="五、虚拟机配置要求"></a>五、虚拟机配置要求</h2><h3 id="通用要求"><a href="#通用要求" class="headerlink" title="通用要求"></a>通用要求</h3><ul>
+<li><strong>BIOS 类型</strong>：<code>OVMF (UEFI)</code></li>
+<li><strong>机器类型</strong>：<code>q35</code></li>
+<li><strong>显卡</strong>：设置为 <code>无</code>（不使用虚拟显卡，直接直通 VF）</li>
+</ul>
+<h3 id="Linux-虚拟机"><a href="#Linux-虚拟机" class="headerlink" title="Linux 虚拟机"></a>Linux 虚拟机</h3><p>直通后可使用 <code>renderD128</code> 设备进行硬件编解码。如果未出现该设备，运行以下命令排查：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">dmesg | grep i915</span><br></pre></td></tr></table></figure>
+
+<h3 id="Windows-虚拟机"><a href="#Windows-虚拟机" class="headerlink" title="Windows 虚拟机"></a>Windows 虚拟机</h3><ol>
+<li>虚拟机配置必须为 OVMF + q35</li>
+<li>显卡设置为 <code>无</code></li>
+<li>安装最新 Intel 显卡驱动（以下二选一自行测试）：<ul>
+<li><a target="_blank" rel="noopener" href="https://www.intel.com/content/www/us/en/download/785597/">Intel Arc &amp; Iris Xe Graphics Driver</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.intel.com/content/www/us/en/download/19344/">Intel Graphics Driver for Windows</a></li>
+</ul>
+</li>
+</ol>
+<hr>
+<h2 id="排错参考"><a href="#排错参考" class="headerlink" title="排错参考"></a>排错参考</h2><table>
+<thead>
+<tr>
+<th>问题</th>
+<th>排查方法</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>IOMMU 未开启</td>
+<td>检查 BIOS VT-D 设置，确认 GRUB 参数正确</td>
+</tr>
+<tr>
+<td>i915 模块未加载</td>
+<td>&#96;lsmod</td>
+</tr>
+<tr>
+<td>renderD128 未出现</td>
+<td>&#96;dmesg</td>
+</tr>
+<tr>
+<td>SR-IOV 设备未创建</td>
+<td>检查 <code>/sys/devices/pci0000:00/0000:00:02.0/sriov_numvfs</code> 文件读写权限</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="视频教程"><a href="#视频教程" class="headerlink" title="视频教程"></a>视频教程</h2><iframe src="//player.bilibili.com/player.html" width="100%" height="400" frameborder="no" scrolling="no" allowfullscreen="true"></iframe></div>
+    
+      <nav class="post-nav">
+        
+          <a class="prev" href="/undefined/%E5%B8%B8%E7%94%A8VPS%E8%84%9A%E6%9C%AC/">
+            <span class="nav-label">← Previous</span>
+            <span class="nav-title">常用 VPS 脚本合集</span>
+          </a>
+        
+        
+      </nav>
+    
+  </article>
+</div></main>
+    <footer class="footer">
+  <div class="footer-inner">
+    <p>&copy; 2026 Sam. Powered by <a href="https://hexo.io" target="_blank" rel="noopener">Hexo</a> &amp; <a href="https://github.com/imzyb/migo" target="_blank" rel="noopener">MiGo</a>.</p>
+  </div>
+</footer>
+<script>
+(function() {
+  var toggle = document.getElementById('themeToggle');
+  if (toggle) {
+    toggle.addEventListener('click', function() {
+      var html = document.documentElement;
+      var theme = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+      html.setAttribute('data-theme', theme);
+      try { localStorage.setItem('migo-theme', theme); } catch(e) {}
+    });
+    var stored = (function(){ try { return localStorage.getItem('migo-theme'); } catch(e) {} })();
+    if (stored) document.documentElement.setAttribute('data-theme', stored);
+  }
+})();
+</script>
+  </body>
+</html>

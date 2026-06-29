@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark">
+  <head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="author" content="Sam">
+<link rel="icon" href="/img/logo.png">
+<title>常用 VPS 脚本合集</title>
+<meta name="description" content="整理日常 VPS 运维中最常用的脚本，涵盖系统重装、性能测试、网络测速、环境安装等场景。">
+<meta name="description" content="整理日常 VPS 运维中最常用的脚本，涵盖系统重装、性能测试、网络测速、环境安装等场景。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="常用 VPS 脚本合集">
+<meta property="og:url" content="https://imzyb.github.io/undefined/%E5%B8%B8%E7%94%A8VPS%E8%84%9A%E6%9C%AC/index.html">
+<meta property="og:site_name" content="Sam&#39;s Blog">
+<meta property="og:description" content="整理日常 VPS 运维中最常用的脚本，涵盖系统重装、性能测试、网络测速、环境安装等场景。">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2024-10-27T14:13:16.000Z">
+<meta property="article:modified_time" content="2026-06-29T15:05:40.067Z">
+<meta property="article:author" content="Sam">
+<meta property="article:tag" content="VPS">
+<meta property="article:tag" content="Linux">
+<meta property="article:tag" content="脚本">
+<meta property="article:tag" content="运维">
+<meta name="twitter:card" content="summary">
+<link rel="stylesheet" href="/css/style.css">
+<meta name="generator" content="Hexo 7.3.0"></head>
+  <body class="page-post">
+    <header class="header">
+  <div class="header-inner">
+    <a href="/" class="logo">Sam&#39;s Blog</a>
+    <nav class="nav">
+      <a href="/archives">Archives</a>
+      <a href="/categories">Categories</a>
+      <a href="/tags">Tags</a>
+    </nav>
+    <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme">
+      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+    </button>
+  </div>
+</header>
+    <main class="main"><div class="container container-narrow">
+  <article class="post-full">
+    <header class="post-full-header">
+      <h1 class="post-full-title">常用 VPS 脚本合集</h1>
+      <div class="post-full-meta">
+        <time>10月 27, 2024</time>
+        
+          <span class="post-category">服务器运维</span>
+        
+        
+          <span>1.1k words</span>
+          <span>5 min read</span>
+        
+      </div>
+      
+        <div class="post-full-tags">
+          
+            <a class="tag" href="/tags/VPS/">#VPS</a>
+          
+            <a class="tag" href="/tags/Linux/">#Linux</a>
+          
+            <a class="tag" href="/tags/%E8%84%9A%E6%9C%AC/">#脚本</a>
+          
+            <a class="tag" href="/tags/%E8%BF%90%E7%BB%B4/">#运维</a>
+          
+        </div>
+      
+    </header>
+    <div class="post-content"><blockquote>
+<p>整理自日常 VPS 运维中的常用脚本，涵盖系统重装、性能测试、网络测速、流媒体检测、环境安装等场景。持续更新中。</p>
+</blockquote>
+<hr>
+<h2 id="一、系统重装"><a href="#一、系统重装" class="headerlink" title="一、系统重装"></a>一、系统重装</h2><h3 id="史上最强-DD-脚本（推荐）"><a href="#史上最强-DD-脚本（推荐）" class="headerlink" title="史上最强 DD 脚本（推荐）"></a>史上最强 DD 脚本（推荐）</h3><p>支持重装多种 Linux 发行版和 Windows，功能最全面：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">wget --no-check-certificate -qO InstallNET.sh <span class="string">&#x27;https://raw.githubusercontent.com/leitbogioro/Tools/master/Linux_reinstall/InstallNET.sh&#x27;</span> \</span><br><span class="line">  &amp;&amp; <span class="built_in">chmod</span> a+x InstallNET.sh \</span><br><span class="line">  &amp;&amp; bash InstallNET.sh -debian 12 -<span class="built_in">pwd</span> <span class="string">&#x27;password&#x27;</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="萌咖-DD-脚本"><a href="#萌咖-DD-脚本" class="headerlink" title="萌咖 DD 脚本"></a>萌咖 DD 脚本</h3><p>经典脚本，稳定可靠：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">bash &lt;(wget --no-check-certificate -qO- <span class="string">&#x27;https://raw.githubusercontent.com/MoeClub/Note/master/InstallNET.sh&#x27;</span>) \</span><br><span class="line">  -d 11 -v 64 -p 密码 -port 端口 -a -firmware</span><br></pre></td></tr></table></figure>
+
+<h3 id="beta-gs-DD-脚本"><a href="#beta-gs-DD-脚本" class="headerlink" title="beta.gs DD 脚本"></a>beta.gs DD 脚本</h3><p>交互式菜单，可视化操作：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">wget --no-check-certificate -O NewReinstall.sh \</span><br><span class="line">  https://raw.githubusercontent.com/fcurrk/reinstall/master/NewReinstall.sh \</span><br><span class="line">  &amp;&amp; <span class="built_in">chmod</span> a+x NewReinstall.sh &amp;&amp; bash NewReinstall.sh</span><br></pre></td></tr></table></figure>
+
+<h3 id="DD-Windows-系统"><a href="#DD-Windows-系统" class="headerlink" title="DD Windows 系统"></a>DD Windows 系统</h3><p>使用最强 DD 脚本安装 Windows：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">bash &lt;(curl -sSL https://raw.githubusercontent.com/leitbogioro/Tools/master/Linux_reinstall/InstallNET.sh) \</span><br><span class="line">  -windows 10 -lang <span class="string">&quot;cn&quot;</span></span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>默认账户：<code>Administrator</code>，密码：<code>Teddysun.com</code></p>
+</blockquote>
+<hr>
+<h2 id="二、综合性能测试"><a href="#二、综合性能测试" class="headerlink" title="二、综合性能测试"></a>二、综合性能测试</h2><h3 id="LemonBench（快速版）"><a href="#LemonBench（快速版）" class="headerlink" title="LemonBench（快速版）"></a>LemonBench（快速版）</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">wget -qO- https://raw.githubusercontent.com/LemonBench/LemonBench/main/LemonBench.sh | bash -s -- --fast</span><br></pre></td></tr></table></figure>
+
+<h3 id="融合怪（推荐）"><a href="#融合怪（推荐）" class="headerlink" title="融合怪（推荐）"></a>融合怪（推荐）</h3><p>功能全面，包含 CPU、内存、磁盘、网络、流媒体等：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">bash &lt;(wget -qO- --no-check-certificate https://gitlab.com/spiritysdx/za/-/raw/main/ecs.sh)</span><br></pre></td></tr></table></figure>
+
+<h3 id="NodeBench"><a href="#NodeBench" class="headerlink" title="NodeBench"></a>NodeBench</h3><p>轻量快速测试：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">bash &lt;(curl -sL https://raw.githubusercontent.com/LloydAsp/NodeBench/main/NodeBench.sh)</span><br></pre></td></tr></table></figure>
+
+<h3 id="YABS（Yet-Another-Bench-Script）"><a href="#YABS（Yet-Another-Bench-Script）" class="headerlink" title="YABS（Yet Another Bench Script）"></a>YABS（Yet Another Bench Script）</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 标准测试</span></span><br><span class="line">curl -sL yabs.sh | bash</span><br><span class="line"></span><br><span class="line"><span class="comment"># 使用 Geekbench 5 测试</span></span><br><span class="line">curl -sL yabs.sh | bash -s -- -5</span><br></pre></td></tr></table></figure>
+
+<h3 id="GB5-专项测试"><a href="#GB5-专项测试" class="headerlink" title="GB5 专项测试"></a>GB5 专项测试</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">bash &lt;(curl -sL bash.icu/gb5)</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="三、流媒体及-IP-质量检测"><a href="#三、流媒体及-IP-质量检测" class="headerlink" title="三、流媒体及 IP 质量检测"></a>三、流媒体及 IP 质量检测</h2><h3 id="流媒体解锁检测"><a href="#流媒体解锁检测" class="headerlink" title="流媒体解锁检测"></a>流媒体解锁检测</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 最常用版本</span></span><br><span class="line">bash &lt;(curl -L -s check.unlock.media)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 原生检测脚本</span></span><br><span class="line">bash &lt;(curl -sL Media.Check.Place)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 准确度最高（RegionRestrictionCheck）</span></span><br><span class="line">bash &lt;(curl -L -s https://github.com/1-stream/RegionRestrictionCheck/raw/main/check.sh)</span><br></pre></td></tr></table></figure>
+
+<h3 id="IP-质量体检"><a href="#IP-质量体检" class="headerlink" title="IP 质量体检"></a>IP 质量体检</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">bash &lt;(curl -sL IP.Check.Place)</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="四、网络测速"><a href="#四、网络测速" class="headerlink" title="四、网络测速"></a>四、网络测速</h2><h3 id="Speedtest"><a href="#Speedtest" class="headerlink" title="Speedtest"></a>Speedtest</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">bash &lt;(curl -sL bash.icu/speedtest)</span><br></pre></td></tr></table></figure>
+
+<h3 id="Taier"><a href="#Taier" class="headerlink" title="Taier"></a>Taier</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">bash &lt;(curl -sL res.yserver.ink/taier.sh)</span><br></pre></td></tr></table></figure>
+
+<h3 id="Hyperspeed"><a href="#Hyperspeed" class="headerlink" title="Hyperspeed"></a>Hyperspeed</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">curl -Lso- https://bench.im/hyperspeed | bash</span><br></pre></td></tr></table></figure>
+
+<h3 id="全球测速"><a href="#全球测速" class="headerlink" title="全球测速"></a>全球测速</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">curl -sL network-speed.xyz | bash</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="五、路由回程测试"><a href="#五、路由回程测试" class="headerlink" title="五、路由回程测试"></a>五、路由回程测试</h2><h3 id="一键回程测试（小白友好）"><a href="#一键回程测试（小白友好）" class="headerlink" title="一键回程测试（小白友好）"></a>一键回程测试（小白友好）</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">curl https://raw.githubusercontent.com/ludashi2020/backtrace/main/install.sh -sSf | sh</span><br></pre></td></tr></table></figure>
+
+<h3 id="详细回程测试"><a href="#详细回程测试" class="headerlink" title="详细回程测试"></a>详细回程测试</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">wget -N --no-check-certificate https://raw.githubusercontent.com/Chennhaoo/Shell_Bash/master/AutoTrace.sh \</span><br><span class="line">  &amp;&amp; <span class="built_in">chmod</span> +x AutoTrace.sh &amp;&amp; bash AutoTrace.sh</span><br></pre></td></tr></table></figure>
+
+<h3 id="北京电信回程测试"><a href="#北京电信回程测试" class="headerlink" title="北京电信回程测试"></a>北京电信回程测试</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">wget https://ghproxy.com/https://raw.githubusercontent.com/vpsxb/testrace/main/testrace.sh \</span><br><span class="line">  -O testrace.sh &amp;&amp; bash testrace.sh</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="六、系统优化脚本"><a href="#六、系统优化脚本" class="headerlink" title="六、系统优化脚本"></a>六、系统优化脚本</h2><h3 id="添加-SWAP"><a href="#添加-SWAP" class="headerlink" title="添加 SWAP"></a>添加 SWAP</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">wget https://www.moerats.com/usr/shell/swap.sh &amp;&amp; bash swap.sh</span><br></pre></td></tr></table></figure>
+
+<h3 id="Fail2ban-安装（防暴力破解）"><a href="#Fail2ban-安装（防暴力破解）" class="headerlink" title="Fail2ban 安装（防暴力破解）"></a>Fail2ban 安装（防暴力破解）</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">wget --no-check-certificate https://raw.githubusercontent.com/FunctionClub/Fail2ban/master/fail2ban.sh \</span><br><span class="line">  &amp;&amp; bash fail2ban.sh 2&gt;&amp;1 | <span class="built_in">tee</span> fail2ban.log</span><br></pre></td></tr></table></figure>
+
+<h3 id="一键开启-BBR（适用于较新内核）"><a href="#一键开启-BBR（适用于较新内核）" class="headerlink" title="一键开启 BBR（适用于较新内核）"></a>一键开启 BBR（适用于较新内核）</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">echo</span> <span class="string">&quot;net.core.default_qdisc=fq&quot;</span> &gt;&gt; /etc/sysctl.conf</span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;net.ipv4.tcp_congestion_control=bbr&quot;</span> &gt;&gt; /etc/sysctl.conf</span><br><span class="line">sysctl -p</span><br><span class="line">sysctl net.ipv4.tcp_available_congestion_control</span><br><span class="line">lsmod | grep bbr</span><br></pre></td></tr></table></figure>
+
+<h3 id="多功能-BBR-安装脚本"><a href="#多功能-BBR-安装脚本" class="headerlink" title="多功能 BBR 安装脚本"></a>多功能 BBR 安装脚本</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">wget -N --no-check-certificate <span class="string">&quot;https://gist.githubusercontent.com/zeruns/a0ec603f20d1b86de6a774a8ba27588f/raw/4f9957ae23f5efb2bb7c57a198ae2cffebfb1c56/tcp.sh&quot;</span> \</span><br><span class="line">  &amp;&amp; <span class="built_in">chmod</span> +x tcp.sh &amp;&amp; ./tcp.sh</span><br></pre></td></tr></table></figure>
+
+<h3 id="锐速-BBRPLUS-BBR2-BBR3-一键脚本"><a href="#锐速-BBRPLUS-BBR2-BBR3-一键脚本" class="headerlink" title="锐速 &#x2F; BBRPLUS &#x2F; BBR2 &#x2F; BBR3 一键脚本"></a>锐速 &#x2F; BBRPLUS &#x2F; BBR2 &#x2F; BBR3 一键脚本</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">wget -O tcpx.sh <span class="string">&quot;https://github.com/ylx2016/Linux-NetSpeed/raw/master/tcpx.sh&quot;</span> \</span><br><span class="line">  &amp;&amp; <span class="built_in">chmod</span> +x tcpx.sh &amp;&amp; ./tcpx.sh</span><br></pre></td></tr></table></figure>
+
+<h3 id="TCP-窗口调优"><a href="#TCP-窗口调优" class="headerlink" title="TCP 窗口调优"></a>TCP 窗口调优</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">wget http://sh.nekoneko.cloud/tools.sh -O tools.sh &amp;&amp; bash tools.sh</span><br></pre></td></tr></table></figure>
+
+<h3 id="25-端口开放测试"><a href="#25-端口开放测试" class="headerlink" title="25 端口开放测试"></a>25 端口开放测试</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">telnet smtp.aol.com 25</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="七、环境及软件一键安装"><a href="#七、环境及软件一键安装" class="headerlink" title="七、环境及软件一键安装"></a>七、环境及软件一键安装</h2><h3 id="Docker"><a href="#Docker" class="headerlink" title="Docker"></a>Docker</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">curl -sSL https://get.daocloud.io/docker | sh</span><br></pre></td></tr></table></figure>
+
+<h3 id="Python"><a href="#Python" class="headerlink" title="Python"></a>Python</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">curl -O https://raw.githubusercontent.com/lx969788249/lxspacepy/master/pyinstall.sh \</span><br><span class="line">  &amp;&amp; <span class="built_in">chmod</span> +x pyinstall.sh &amp;&amp; ./pyinstall.sh</span><br></pre></td></tr></table></figure>
+
+<h3 id="iperf3（带宽测试工具）"><a href="#iperf3（带宽测试工具）" class="headerlink" title="iperf3（带宽测试工具）"></a>iperf3（带宽测试工具）</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">apt install iperf3</span><br></pre></td></tr></table></figure>
+
+<h3 id="Realm（流量转发）"><a href="#Realm（流量转发）" class="headerlink" title="Realm（流量转发）"></a>Realm（流量转发）</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">bash &lt;(curl -L https://raw.githubusercontent.com/zhouh047/realm-oneclick-install/main/realm.sh) -i</span><br></pre></td></tr></table></figure>
+
+<h3 id="Gost（隧道代理）"><a href="#Gost（隧道代理）" class="headerlink" title="Gost（隧道代理）"></a>Gost（隧道代理）</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">wget --no-check-certificate -O gost.sh https://raw.githubusercontent.com/qqrrooty/EZgost/main/gost.sh \</span><br><span class="line">  &amp;&amp; <span class="built_in">chmod</span> +x gost.sh &amp;&amp; ./gost.sh</span><br></pre></td></tr></table></figure>
+
+<h3 id="极光面板（Aurora-Panel）"><a href="#极光面板（Aurora-Panel）" class="headerlink" title="极光面板（Aurora Panel）"></a>极光面板（Aurora Panel）</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">bash &lt;(curl -fsSL https://raw.githubusercontent.com/Aurora-Admin-Panel/deploy/main/install.sh)</span><br></pre></td></tr></table></figure>
+
+<h3 id="哪吒监控"><a href="#哪吒监控" class="headerlink" title="哪吒监控"></a>哪吒监控</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">curl -L https://raw.githubusercontent.com/naiba/nezha/master/script/install.sh -o nezha.sh \</span><br><span class="line">  &amp;&amp; <span class="built_in">chmod</span> +x nezha.sh &amp;&amp; <span class="built_in">sudo</span> ./nezha.sh</span><br></pre></td></tr></table></figure>
+
+<h3 id="Cloudflare-WARP"><a href="#Cloudflare-WARP" class="headerlink" title="Cloudflare WARP"></a>Cloudflare WARP</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">wget -N https://gitlab.com/fscarmen/warp/-/raw/main/menu.sh &amp;&amp; bash menu.sh</span><br></pre></td></tr></table></figure>
+
+<h3 id="Aria2（下载工具）"><a href="#Aria2（下载工具）" class="headerlink" title="Aria2（下载工具）"></a>Aria2（下载工具）</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">wget -N git.io/aria2.sh &amp;&amp; <span class="built_in">chmod</span> +x aria2.sh &amp;&amp; ./aria2.sh</span><br></pre></td></tr></table></figure>
+
+<h3 id="宝塔面板（国产运维面板）"><a href="#宝塔面板（国产运维面板）" class="headerlink" title="宝塔面板（国产运维面板）"></a>宝塔面板（国产运维面板）</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">wget -O install.sh http://v7.hostcli.com/install/install-ubuntu_6.0.sh &amp;&amp; <span class="built_in">sudo</span> bash install.sh</span><br></pre></td></tr></table></figure>
+
+<h3 id="PVE-虚拟化一键安装"><a href="#PVE-虚拟化一键安装" class="headerlink" title="PVE 虚拟化一键安装"></a>PVE 虚拟化一键安装</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">bash &lt;(wget -qO- --no-check-certificate https://raw.githubusercontent.com/oneclickvirt/pve/main/scripts/build_backend.sh)</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="八、综合工具箱"><a href="#八、综合工具箱" class="headerlink" title="八、综合工具箱"></a>八、综合工具箱</h2><h3 id="科技-lion-脚本"><a href="#科技-lion-脚本" class="headerlink" title="科技 lion 脚本"></a>科技 lion 脚本</h3><p>多功能 Linux 运维工具箱：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">curl -sS -O https://kejilion.pro/kejilion.sh &amp;&amp; <span class="built_in">chmod</span> +x kejilion.sh &amp;&amp; ./kejilion.sh</span><br></pre></td></tr></table></figure>
+
+<h3 id="SKY-BOX"><a href="#SKY-BOX" class="headerlink" title="SKY-BOX"></a>SKY-BOX</h3><p>蓝眼云工具箱，功能丰富：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">wget -O box.sh https://raw.githubusercontent.com/BlueSkyXN/SKY-BOX/main/box.sh \</span><br><span class="line">  &amp;&amp; <span class="built_in">chmod</span> +x box.sh &amp;&amp; clear &amp;&amp; ./box.sh</span><br></pre></td></tr></table></figure>
+
+<hr>
+<blockquote>
+<p>大部分脚本整理自网络，在此感谢各位大佬的贡献。本贴会持续更新和补充实用脚本。</p>
+</blockquote>
+</div>
+    
+      <nav class="post-nav">
+        
+          <a class="prev" href="/undefined/%E7%94%A8Mihomo%E6%89%93%E9%80%A0%E6%9C%80%E5%BC%BA%E4%BB%A3%E7%90%86%E6%9C%BA/">
+            <span class="nav-label">← Previous</span>
+            <span class="nav-title">在 Linux 上用 Mihomo 打造透明代理网关</span>
+          </a>
+        
+        
+          <a class="next" href="/undefined/PVE8%E7%9B%B4%E9%80%9A%E6%A0%B8%E6%98%BE%EF%BC%88N100%EF%BC%89%EF%BC%8C%E5%B9%B6%E5%BC%80%E5%90%AF%E8%99%9A%E6%8B%9F%E5%8C%96Sriov/">
+            <span class="nav-label">Next →</span>
+            <span class="nav-title">PVE 8 直通 N100 核显并开启 SR-IOV 虚拟化</span>
+          </a>
+        
+      </nav>
+    
+  </article>
+</div></main>
+    <footer class="footer">
+  <div class="footer-inner">
+    <p>&copy; 2026 Sam. Powered by <a href="https://hexo.io" target="_blank" rel="noopener">Hexo</a> &amp; <a href="https://github.com/imzyb/migo" target="_blank" rel="noopener">MiGo</a>.</p>
+  </div>
+</footer>
+<script>
+(function() {
+  var toggle = document.getElementById('themeToggle');
+  if (toggle) {
+    toggle.addEventListener('click', function() {
+      var html = document.documentElement;
+      var theme = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+      html.setAttribute('data-theme', theme);
+      try { localStorage.setItem('migo-theme', theme); } catch(e) {}
+    });
+    var stored = (function(){ try { return localStorage.getItem('migo-theme'); } catch(e) {} })();
+    if (stored) document.documentElement.setAttribute('data-theme', stored);
+  }
+})();
+</script>
+  </body>
+</html>

@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark">
+  <head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="author" content="Sam">
+<link rel="icon" href="/img/logo.png">
+<title>MiGate 部署教程 — 轻量级 VPS 代理管理面板</title>
+<meta name="description" content="MiGate 是一款 Go 单二进制文件轻量级 VPS 面板，通过本地 SQLite 和嵌入式 WebUI 管理 Xray 和 sing-box 的入站、客户端、共享出站配置、路由和核心配置。">
+<meta name="description" content="MiGate 是一款 Go 单二进制文件轻量级 VPS 面板，通过本地 SQLite 和嵌入式 WebUI 管理 Xray 和 sing-box 的入站、客户端、共享出站配置、路由和核心配置。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="MiGate 部署教程 — 轻量级 VPS 代理管理面板">
+<meta property="og:url" content="https://imzyb.github.io/undefined/MiGate%E9%83%A8%E7%BD%B2%E6%95%99%E7%A8%8B/index.html">
+<meta property="og:site_name" content="Sam&#39;s Blog">
+<meta property="og:description" content="MiGate 是一款 Go 单二进制文件轻量级 VPS 面板，通过本地 SQLite 和嵌入式 WebUI 管理 Xray 和 sing-box 的入站、客户端、共享出站配置、路由和核心配置。">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2026-06-29T15:11:28.000Z">
+<meta property="article:modified_time" content="2026-06-29T15:12:14.288Z">
+<meta property="article:author" content="Sam">
+<meta property="article:tag" content="MiGate">
+<meta property="article:tag" content="VPS">
+<meta property="article:tag" content="Xray">
+<meta property="article:tag" content="sing-box">
+<meta property="article:tag" content="代理">
+<meta name="twitter:card" content="summary">
+<link rel="stylesheet" href="/css/style.css">
+<meta name="generator" content="Hexo 7.3.0"></head>
+  <body class="page-post">
+    <header class="header">
+  <div class="header-inner">
+    <a href="/" class="logo">Sam&#39;s Blog</a>
+    <nav class="nav">
+      <a href="/archives">Archives</a>
+      <a href="/categories">Categories</a>
+      <a href="/tags">Tags</a>
+    </nav>
+    <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme">
+      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+    </button>
+  </div>
+</header>
+    <main class="main"><div class="container container-narrow">
+  <article class="post-full">
+    <header class="post-full-header">
+      <h1 class="post-full-title">MiGate 部署教程 — 轻量级 VPS 代理管理面板</h1>
+      <div class="post-full-meta">
+        <time>6月 29, 2026</time>
+        
+          <span class="post-category">代理与网络</span>
+        
+        
+          <span>1.5k words</span>
+          <span>6 min read</span>
+        
+      </div>
+      
+        <div class="post-full-tags">
+          
+            <a class="tag" href="/tags/MiGate/">#MiGate</a>
+          
+            <a class="tag" href="/tags/VPS/">#VPS</a>
+          
+            <a class="tag" href="/tags/Xray/">#Xray</a>
+          
+            <a class="tag" href="/tags/sing-box/">#sing-box</a>
+          
+            <a class="tag" href="/tags/%E4%BB%A3%E7%90%86/">#代理</a>
+          
+        </div>
+      
+    </header>
+    <div class="post-content"><blockquote>
+<p><strong>MiGate</strong> 是一款 Go 单二进制轻量级 VPS 面板，使用本地 SQLite 数据库和嵌入式 React WebUI，管理 Xray 和 sing-box 的入站节点、客户端、共享出站配置、路由规则以及核心配置的生成与应用。</p>
+</blockquote>
+<p><strong>版本：</strong> v1.5.4 | <strong>仓库：</strong> <a target="_blank" rel="noopener" href="https://github.com/imzyb/MiGate">github.com&#x2F;imzyb&#x2F;MiGate</a></p>
+<hr>
+<h2 id="目录"><a href="#目录" class="headerlink" title="目录"></a>目录</h2><ul>
+<li><a href="#%E5%8A%9F%E8%83%BD%E6%A6%82%E8%A7%88">功能概览</a></li>
+<li><a href="#%E4%B8%80%E9%94%AE%E5%AE%89%E8%A3%85">一键安装</a></li>
+<li><a href="#%E9%9D%A2%E6%9D%BF%E9%85%8D%E7%BD%AE">面板配置</a></li>
+<li><a href="#%E6%97%A5%E5%B8%B8%E7%AE%A1%E7%90%86">日常管理</a></li>
+<li><a href="#%E9%85%8D%E7%BD%AE%E8%AF%A6%E8%A7%A3">配置详解</a></li>
+<li><a href="#%E5%AE%89%E5%85%A8%E5%BB%BA%E8%AE%AE">安全建议</a></li>
+<li><a href="#%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98">常见问题</a></li>
+</ul>
+<hr>
+<h2 id="功能概览"><a href="#功能概览" class="headerlink" title="功能概览"></a>功能概览</h2><table>
+<thead>
+<tr>
+<th>功能</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>单二进制部署</td>
+<td>无需 Python&#x2F;Node 运行时，一个 Go 二进制文件搞定</td>
+</tr>
+<tr>
+<td>React WebUI</td>
+<td>管理入站、客户端、出站、路由、TLS 证书、设置等</td>
+</tr>
+<tr>
+<td>双核心支持</td>
+<td>同时管理 Xray 和 sing-box，面板配置自动同步</td>
+</tr>
+<tr>
+<td>多协议入站</td>
+<td>VLESS、VMess、Trojan、Shadowsocks、Hysteria2、TUIC、ShadowTLS</td>
+</tr>
+<tr>
+<td>SOCKS5 池</td>
+<td>导入 SOCKS5 代理池，灵活分配出站</td>
+</tr>
+<tr>
+<td>路由管理</td>
+<td>可视化配置路由规则，按需分流</td>
+</tr>
+<tr>
+<td>TLS 证书</td>
+<td>内置 ACME 证书申请与管理</td>
+</tr>
+<tr>
+<td>订阅分享</td>
+<td>生成客户端订阅链接，一键导入</td>
+</tr>
+<tr>
+<td>备份恢复</td>
+<td>内置备份&#x2F;恢复功能，数据安全无忧</td>
+</tr>
+<tr>
+<td>systemd 管理</td>
+<td>自动注册服务，支持开机自启</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="一键安装"><a href="#一键安装" class="headerlink" title="一键安装"></a>一键安装</h2><h3 id="环境要求"><a href="#环境要求" class="headerlink" title="环境要求"></a>环境要求</h3><ul>
+<li><strong>系统：</strong> Linux（推荐 Debian 11&#x2F;12、Ubuntu 22.04+）</li>
+<li><strong>权限：</strong> root 用户</li>
+<li><strong>架构：</strong> amd64 &#x2F; arm64</li>
+</ul>
+<h3 id="安装命令"><a href="#安装命令" class="headerlink" title="安装命令"></a>安装命令</h3><p>在 VPS 上以 root 用户执行：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">bash &lt;(curl -Ls https://raw.githubusercontent.com/imzyb/MiGate/main/packaging/install.sh)</span><br></pre></td></tr></table></figure>
+
+<h3 id="指定版本安装"><a href="#指定版本安装" class="headerlink" title="指定版本安装"></a>指定版本安装</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">MIGATE_VERSION=v1.0.21 bash &lt;(curl -Ls https://raw.githubusercontent.com/imzyb/MiGate/main/packaging/install.sh)</span><br></pre></td></tr></table></figure>
+
+<h3 id="安装流程"><a href="#安装流程" class="headerlink" title="安装流程"></a>安装流程</h3><p>首次安装时，安装程序会依次进行：</p>
+<ol>
+<li>环境检测（检查系统、架构、依赖）</li>
+<li>检测现有 MiGate 安装</li>
+<li>询问面板配置信息：</li>
+</ol>
+<table>
+<thead>
+<tr>
+<th>配置项</th>
+<th>说明</th>
+<th>默认值</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>面板端口</td>
+<td>WebUI 访问端口</td>
+<td><code>9999</code></td>
+</tr>
+<tr>
+<td>用户名</td>
+<td>管理员用户名</td>
+<td><code>admin</code></td>
+</tr>
+<tr>
+<td>密码</td>
+<td>管理员密码，留空自动生成</td>
+<td>随机密码</td>
+</tr>
+<tr>
+<td>Web 路径</td>
+<td>面板访问路径</td>
+<td><code>/panel</code></td>
+</tr>
+<tr>
+<td>安装核心</td>
+<td>是否安装&#x2F;修复 Xray 和 sing-box</td>
+<td>是</td>
+</tr>
+</tbody></table>
+<h3 id="非交互式安装"><a href="#非交互式安装" class="headerlink" title="非交互式安装"></a>非交互式安装</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 安装或升级，保留现有配置</span></span><br><span class="line">bash &lt;(curl -Ls https://raw.githubusercontent.com/imzyb/MiGate/main/packaging/install.sh) --install --<span class="built_in">yes</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 预览安装操作（不实际执行）</span></span><br><span class="line">bash &lt;(curl -Ls https://raw.githubusercontent.com/imzyb/MiGate/main/packaging/install.sh) --install --<span class="built_in">yes</span> --dry-run</span><br></pre></td></tr></table></figure>
+
+<h3 id="访问面板"><a href="#访问面板" class="headerlink" title="访问面板"></a>访问面板</h3><p>安装完成后，通过浏览器访问：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">http://&lt;你的VPS_IP&gt;:9999/panel</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>面板服务默认绑定 <code>0.0.0.0</code>，方便直接访问。生产环境建议使用 Nginx&#x2F;Caddy 反向代理并开启 HTTPS。</p>
+</blockquote>
+<hr>
+<h2 id="面板配置"><a href="#面板配置" class="headerlink" title="面板配置"></a>面板配置</h2><h3 id="基本配置"><a href="#基本配置" class="headerlink" title="基本配置"></a>基本配置</h3><p>配置文件位于 <code>/etc/migate/panel.json</code>：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;port&quot;</span><span class="punctuation">:</span> <span class="number">9999</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;username&quot;</span><span class="punctuation">:</span> <span class="string">&quot;admin&quot;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;web_path&quot;</span><span class="punctuation">:</span> <span class="string">&quot;/panel&quot;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;public_host&quot;</span><span class="punctuation">:</span> <span class="string">&quot;your-domain.com&quot;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;trust_proxy&quot;</span><span class="punctuation">:</span> <span class="literal"><span class="keyword">false</span></span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<table>
+<thead>
+<tr>
+<th>配置项</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>port</code></td>
+<td>面板监听端口</td>
+</tr>
+<tr>
+<td><code>username</code></td>
+<td>管理员用户名</td>
+</tr>
+<tr>
+<td><code>web_path</code></td>
+<td>面板访问路径</td>
+</tr>
+<tr>
+<td><code>public_host</code></td>
+<td>公共域名，用于生成订阅链接</td>
+</tr>
+<tr>
+<td><code>trust_proxy</code></td>
+<td>是否信任反向代理（使用 <code>X-Forwarded-Proto</code>）</td>
+</tr>
+</tbody></table>
+<h3 id="核心配置路径"><a href="#核心配置路径" class="headerlink" title="核心配置路径"></a>核心配置路径</h3><table>
+<thead>
+<tr>
+<th>文件</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>/etc/migate/panel.json</code></td>
+<td>面板配置</td>
+</tr>
+<tr>
+<td><code>/etc/migate/cores/xray.json</code></td>
+<td>Xray 核心配置</td>
+</tr>
+<tr>
+<td><code>/etc/migate/cores/sing-box.json</code></td>
+<td>sing-box 核心配置</td>
+</tr>
+<tr>
+<td><code>/var/lib/migate/migate.db</code></td>
+<td>SQLite 数据库</td>
+</tr>
+<tr>
+<td><code>/var/lib/migate/versions.json</code></td>
+<td>安装状态</td>
+</tr>
+<tr>
+<td><code>/var/lib/migate/backups/</code></td>
+<td>备份目录</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="日常管理"><a href="#日常管理" class="headerlink" title="日常管理"></a>日常管理</h2><h3 id="常用命令"><a href="#常用命令" class="headerlink" title="常用命令"></a>常用命令</h3><p>MiGate 提供了 <code>mg</code> 命令方便日常操作：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 查看面板状态</span></span><br><span class="line">mg status</span><br><span class="line">mg doctor</span><br><span class="line">mg info</span><br><span class="line">mg ports</span><br><span class="line"></span><br><span class="line"><span class="comment"># 重启面板</span></span><br><span class="line">mg restart</span><br><span class="line">mg restart all</span><br><span class="line">systemctl restart migate</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看日志</span></span><br><span class="line">mg logs -f</span><br><span class="line">journalctl -u migate -f</span><br><span class="line"></span><br><span class="line"><span class="comment"># 更新面板</span></span><br><span class="line">mg update</span><br><span class="line">mg update --check</span><br><span class="line"></span><br><span class="line"><span class="comment"># 备份与恢复</span></span><br><span class="line">mg backup</span><br><span class="line">mg restore /var/lib/migate/backups/migate-backup-20260629-120000.tar.gz</span><br></pre></td></tr></table></figure>
+
+<h3 id="核心管理"><a href="#核心管理" class="headerlink" title="核心管理"></a>核心管理</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 安装或修复运行核心</span></span><br><span class="line">migate-install --install-xray --<span class="built_in">yes</span></span><br><span class="line">migate-install --install-singbox --<span class="built_in">yes</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 系统服务</span></span><br><span class="line">systemctl status migate</span><br><span class="line">systemctl status migate-xray</span><br><span class="line">systemctl status migate-sing-box</span><br></pre></td></tr></table></figure>
+
+<h3 id="卸载"><a href="#卸载" class="headerlink" title="卸载"></a>卸载</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 仅卸载面板（保留核心和配置）</span></span><br><span class="line">migate-install --uninstall --<span class="built_in">yes</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 卸载面板及核心（保留配置和数据）</span></span><br><span class="line">migate-install --uninstall -- --with-cores --<span class="built_in">yes</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 完全卸载（清除所有数据和配置）</span></span><br><span class="line">migate-install --uninstall -- --purge --<span class="built_in">yes</span></span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="安全建议"><a href="#安全建议" class="headerlink" title="安全建议"></a>安全建议</h2><ol>
+<li><strong>设置强密码</strong> — 安装时设置高强度管理员密码</li>
+<li><strong>使用反向代理</strong> — 通过 Nginx&#x2F;Caddy 反向代理并配置 HTTPS</li>
+<li><strong>配置 <code>public_host</code></strong> — 在 <code>/etc/migate/panel.json</code> 中设置公共域名</li>
+<li><strong>启用 <code>trust_proxy</code></strong> — 使用 HTTPS 反向代理时设为 <code>true</code></li>
+<li><strong>限制访问来源</strong> — 通过防火墙限制面板端口的访问 IP</li>
+<li><strong>定期备份</strong> — 使用 <code>mg backup</code> 定期备份数据库和配置</li>
+</ol>
+<hr>
+<h2 id="反向代理配置示例"><a href="#反向代理配置示例" class="headerlink" title="反向代理配置示例"></a>反向代理配置示例</h2><h3 id="Nginx"><a href="#Nginx" class="headerlink" title="Nginx"></a>Nginx</h3><figure class="highlight nginx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="section">server</span> &#123;</span><br><span class="line">    <span class="attribute">listen</span> <span class="number">443</span> ssl;</span><br><span class="line">    <span class="attribute">server_name</span> your-domain.com;</span><br><span class="line"></span><br><span class="line">    <span class="attribute">ssl_certificate</span> /path/to/cert.pem;</span><br><span class="line">    <span class="attribute">ssl_certificate_key</span> /path/to/key.pem;</span><br><span class="line"></span><br><span class="line">    <span class="section">location</span> /panel &#123;</span><br><span class="line">        <span class="attribute">proxy_pass</span> http://127.0.0.1:9999;</span><br><span class="line">        <span class="attribute">proxy_set_header</span> Host <span class="variable">$host</span>;</span><br><span class="line">        <span class="attribute">proxy_set_header</span> X-Real-IP <span class="variable">$remote_addr</span>;</span><br><span class="line">        <span class="attribute">proxy_set_header</span> X-Forwarded-For <span class="variable">$proxy_add_x_forwarded_for</span>;</span><br><span class="line">        <span class="attribute">proxy_set_header</span> X-Forwarded-Proto <span class="variable">$scheme</span>;</span><br><span class="line">        <span class="attribute">proxy_http_version</span> <span class="number">1</span>.<span class="number">1</span>;</span><br><span class="line">        <span class="attribute">proxy_set_header</span> Upgrade <span class="variable">$http_upgrade</span>;</span><br><span class="line">        <span class="attribute">proxy_set_header</span> Connection <span class="string">&quot;upgrade&quot;</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="Caddy"><a href="#Caddy" class="headerlink" title="Caddy"></a>Caddy</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">your-domain.com &#123;</span><br><span class="line">    reverse_proxy /panel* 127.0.0.1:9999</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="常见问题"><a href="#常见问题" class="headerlink" title="常见问题"></a>常见问题</h2><h3 id="Q1：安装后无法访问面板？"><a href="#Q1：安装后无法访问面板？" class="headerlink" title="Q1：安装后无法访问面板？"></a>Q1：安装后无法访问面板？</h3><ul>
+<li>检查面板是否运行：<code>systemctl status migate</code></li>
+<li>检查防火墙是否放行了端口：<code>ufw status</code> 或 <code>iptables -L</code></li>
+<li>检查面板绑定地址：<code>ss -tlnp | grep 9999</code></li>
+</ul>
+<h3 id="Q2：如何修改面板端口？"><a href="#Q2：如何修改面板端口？" class="headerlink" title="Q2：如何修改面板端口？"></a>Q2：如何修改面板端口？</h3><p>编辑 <code>/etc/migate/panel.json</code> 修改 <code>port</code> 值，然后执行 <code>mg restart</code>。</p>
+<h3 id="Q3：忘记管理员密码？"><a href="#Q3：忘记管理员密码？" class="headerlink" title="Q3：忘记管理员密码？"></a>Q3：忘记管理员密码？</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 在 panel.json 中修改 password 字段</span></span><br><span class="line">nano /etc/migate/panel.json</span><br><span class="line"></span><br><span class="line"><span class="comment"># 重启面板</span></span><br><span class="line">systemctl restart migate</span><br></pre></td></tr></table></figure>
+
+<h3 id="Q4：如何升级-MiGate？"><a href="#Q4：如何升级-MiGate？" class="headerlink" title="Q4：如何升级 MiGate？"></a>Q4：如何升级 MiGate？</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 在线升级</span></span><br><span class="line">mg update</span><br><span class="line"></span><br><span class="line"><span class="comment"># 或重新执行安装脚本</span></span><br><span class="line">bash &lt;(curl -Ls https://raw.githubusercontent.com/imzyb/MiGate/main/packaging/install.sh) --install --<span class="built_in">yes</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="Q5：订阅链接无法使用？"><a href="#Q5：订阅链接无法使用？" class="headerlink" title="Q5：订阅链接无法使用？"></a>Q5：订阅链接无法使用？</h3><ul>
+<li>确认 <code>public_host</code> 已设置为正确的域名或 IP</li>
+<li>确认对应端口已放行</li>
+<li>检查证书是否有效</li>
+</ul>
+<hr>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>MiGate 的部署流程可以概括为：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">执行一键安装 → 配置面板 → 添加入站节点 → 配置客户端 → 生成订阅链接</span><br></pre></td></tr></table></figure>
+
+<p>整个安装过程仅需一条命令，几分钟内即可完成。部署完成后，你就能通过 WebUI 直观地管理你的 VPS 代理节点、客户端和路由规则。</p>
+<p>如果你在部署过程中遇到任何问题，欢迎在项目 <a target="_blank" rel="noopener" href="https://github.com/imzyb/MiGate/issues">GitHub Issues</a> 中提出。</p>
+<hr>
+<p><em>本文档最后更新于 2026 年 6 月，对应 MiGate v1.5.4 版本。</em></p>
+</div>
+    
+      <nav class="post-nav">
+        
+        
+          <a class="next" href="/undefined/MiSub%E9%83%A8%E7%BD%B2%E6%95%99%E7%A8%8B/">
+            <span class="nav-label">Next →</span>
+            <span class="nav-title">MiSub 部署教程 — 轻量级代理订阅管理面板</span>
+          </a>
+        
+      </nav>
+    
+  </article>
+</div></main>
+    <footer class="footer">
+  <div class="footer-inner">
+    <p>&copy; 2026 Sam. Powered by <a href="https://hexo.io" target="_blank" rel="noopener">Hexo</a> &amp; <a href="https://github.com/imzyb/migo" target="_blank" rel="noopener">MiGo</a>.</p>
+  </div>
+</footer>
+<script>
+(function() {
+  var toggle = document.getElementById('themeToggle');
+  if (toggle) {
+    toggle.addEventListener('click', function() {
+      var html = document.documentElement;
+      var theme = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+      html.setAttribute('data-theme', theme);
+      try { localStorage.setItem('migo-theme', theme); } catch(e) {}
+    });
+    var stored = (function(){ try { return localStorage.getItem('migo-theme'); } catch(e) {} })();
+    if (stored) document.documentElement.setAttribute('data-theme', stored);
+  }
+})();
+</script>
+  </body>
+</html>

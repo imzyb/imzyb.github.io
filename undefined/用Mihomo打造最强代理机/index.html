@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark">
+  <head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="author" content="Sam">
+<link rel="icon" href="/img/logo.png">
+<title>在 Linux 上用 Mihomo 打造透明代理网关</title>
+<meta name="description" content="使用 Docker + macvlan 部署 Mihomo 透明代理网关，实现局域网设备无缝科学上网。">
+<meta name="description" content="使用 Docker + macvlan 部署 Mihomo 透明代理网关，实现局域网设备无缝科学上网。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="在 Linux 上用 Mihomo 打造透明代理网关">
+<meta property="og:url" content="https://imzyb.github.io/undefined/%E7%94%A8Mihomo%E6%89%93%E9%80%A0%E6%9C%80%E5%BC%BA%E4%BB%A3%E7%90%86%E6%9C%BA/index.html">
+<meta property="og:site_name" content="Sam&#39;s Blog">
+<meta property="og:description" content="使用 Docker + macvlan 部署 Mihomo 透明代理网关，实现局域网设备无缝科学上网。">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2025-05-22T12:55:59.000Z">
+<meta property="article:modified_time" content="2026-06-29T15:04:59.023Z">
+<meta property="article:author" content="Sam">
+<meta property="article:tag" content="代理">
+<meta property="article:tag" content="Linux">
+<meta property="article:tag" content="Mihomo">
+<meta property="article:tag" content="Docker">
+<meta name="twitter:card" content="summary">
+<link rel="stylesheet" href="/css/style.css">
+<meta name="generator" content="Hexo 7.3.0"></head>
+  <body class="page-post">
+    <header class="header">
+  <div class="header-inner">
+    <a href="/" class="logo">Sam&#39;s Blog</a>
+    <nav class="nav">
+      <a href="/archives">Archives</a>
+      <a href="/categories">Categories</a>
+      <a href="/tags">Tags</a>
+    </nav>
+    <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme">
+      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+    </button>
+  </div>
+</header>
+    <main class="main"><div class="container container-narrow">
+  <article class="post-full">
+    <header class="post-full-header">
+      <h1 class="post-full-title">在 Linux 上用 Mihomo 打造透明代理网关</h1>
+      <div class="post-full-meta">
+        <time>5月 22, 2025</time>
+        
+          <span class="post-category">代理与网络</span>
+        
+        
+          <span>663 words</span>
+          <span>2 min read</span>
+        
+      </div>
+      
+        <div class="post-full-tags">
+          
+            <a class="tag" href="/tags/%E4%BB%A3%E7%90%86/">#代理</a>
+          
+            <a class="tag" href="/tags/Linux/">#Linux</a>
+          
+            <a class="tag" href="/tags/Mihomo/">#Mihomo</a>
+          
+            <a class="tag" href="/tags/Docker/">#Docker</a>
+          
+        </div>
+      
+    </header>
+    <div class="post-content"><blockquote>
+<p>本文介绍如何在 Debian 虚拟机上使用 Docker 和 macvlan 网络部署 <strong>Mihomo</strong>（原 Clash Meta）透明代理网关，让局域网内所有设备无需任何配置即可自动使用代理。</p>
+</blockquote>
+<h2 id="环境准备"><a href="#环境准备" class="headerlink" title="环境准备"></a>环境准备</h2><h3 id="创建-Debian-虚拟机"><a href="#创建-Debian-虚拟机" class="headerlink" title="创建 Debian 虚拟机"></a>创建 Debian 虚拟机</h3><p>在 Proxmox VE 上一键创建 Debian 虚拟机：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">bash -c <span class="string">&quot;<span class="subst">$(curl -fsSL https://raw.githubusercontent.com/community-scripts/ProxmoxVE/main/vm/debian-vm.sh)</span>&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>推荐使用 Debian，因为它轻量、稳定、易用。</p>
+<h3 id="启用-SSH-远程管理"><a href="#启用-SSH-远程管理" class="headerlink" title="启用 SSH 远程管理"></a>启用 SSH 远程管理</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 安装 SSH 服务</span></span><br><span class="line">apt install -y openssh-server</span><br><span class="line">systemctl <span class="built_in">enable</span> ssh</span><br><span class="line">systemctl start ssh</span><br><span class="line"></span><br><span class="line"><span class="comment"># 安装编辑器</span></span><br><span class="line">apt install -y vim</span><br><span class="line"></span><br><span class="line"><span class="comment"># 修改 SSH 配置</span></span><br><span class="line">vim /etc/ssh/sshd_config</span><br></pre></td></tr></table></figure>
+
+<p>修改以下参数：</p>
+<ul>
+<li><code>PermitRootLogin</code> → <code>yes</code></li>
+<li><code>PasswordAuthentication</code> → <code>yes</code></li>
+</ul>
+<p>重启 SSH 服务并设置 root 密码：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">systemctl restart ssh</span><br><span class="line">passwd root</span><br></pre></td></tr></table></figure>
+
+<h3 id="安装-Docker"><a href="#安装-Docker" class="headerlink" title="安装 Docker"></a>安装 Docker</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">apt update &amp;&amp; apt install -y docker.io</span><br><span class="line">systemctl <span class="built_in">enable</span> docker</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="网络配置"><a href="#网络配置" class="headerlink" title="网络配置"></a>网络配置</h2><h3 id="查看网卡信息"><a href="#查看网卡信息" class="headerlink" title="查看网卡信息"></a>查看网卡信息</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ip addr</span><br></pre></td></tr></table></figure>
+
+<p>记录主网卡名称（如 <code>enp0s18</code>）。</p>
+<h3 id="设置网卡混杂模式"><a href="#设置网卡混杂模式" class="headerlink" title="设置网卡混杂模式"></a>设置网卡混杂模式</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ip <span class="built_in">link</span> <span class="built_in">set</span> enp0s18 promisc on</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>持久化配置需将上述命令写入 <code>/etc/rc.local</code>。</p>
+</blockquote>
+<h3 id="创建-macvlan-网络"><a href="#创建-macvlan-网络" class="headerlink" title="创建 macvlan 网络"></a>创建 macvlan 网络</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">docker network create -d macvlan \</span><br><span class="line">  --subnet=192.168.88.0/24 \</span><br><span class="line">  --gateway=192.168.88.1 \</span><br><span class="line">  -o parent=enp0s18 \</span><br><span class="line">  opnet</span><br></pre></td></tr></table></figure>
+
+<p>参数说明：</p>
+<table>
+<thead>
+<tr>
+<th>参数</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>--subnet</code></td>
+<td>局域网网段，与你的主路由一致</td>
+</tr>
+<tr>
+<td><code>--gateway</code></td>
+<td>网关 IP，即主路由 IP</td>
+</tr>
+<tr>
+<td><code>-o parent</code></td>
+<td>物理网卡名称</td>
+</tr>
+<tr>
+<td><code>opnet</code></td>
+<td>自定义 Docker 网络名称</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="部署-Mihomo"><a href="#部署-Mihomo" class="headerlink" title="部署 Mihomo"></a>部署 Mihomo</h2><h3 id="准备配置文件"><a href="#准备配置文件" class="headerlink" title="准备配置文件"></a>准备配置文件</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">mkdir</span> -p /etc/mihomo</span><br></pre></td></tr></table></figure>
+
+<p>准备 <code>config.yaml</code> 配置文件，放置到 <code>/etc/mihomo/</code> 目录下：</p>
+<ul>
+<li><strong>机场用户</strong>：替换为机场提供的订阅配置，或使用订阅转换工具生成</li>
+<li><strong>自建 VPS 用户</strong>：配置代理节点信息（地址、端口、密码、加密方式等）</li>
+</ul>
+<p>可通过 SFTP 工具上传配置文件到 <code>/etc/mihomo/</code>。</p>
+<h3 id="启动-Mihomo-容器"><a href="#启动-Mihomo-容器" class="headerlink" title="启动 Mihomo 容器"></a>启动 Mihomo 容器</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">docker run -d --privileged \</span><br><span class="line">  --name=mihomo \</span><br><span class="line">  --restart=always \</span><br><span class="line">  --network opnet \</span><br><span class="line">  --ip 192.168.88.10 \</span><br><span class="line">  -v /etc/mihomo:/root/.config/mihomo/ \</span><br><span class="line">  metacubex/mihomo:latest</span><br></pre></td></tr></table></figure>
+
+<p>参数说明：</p>
+<table>
+<thead>
+<tr>
+<th>参数</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>--privileged</code></td>
+<td>需要特权模式以修改网络</td>
+</tr>
+<tr>
+<td><code>--name</code></td>
+<td>容器名称</td>
+</tr>
+<tr>
+<td><code>--network opnet</code></td>
+<td>连接到刚创建的 macvlan 网络</td>
+</tr>
+<tr>
+<td><code>--ip</code></td>
+<td>分配给 Mihomo 的固定 IP</td>
+</tr>
+<tr>
+<td><code>-v</code></td>
+<td>挂载配置目录</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="客户端配置"><a href="#客户端配置" class="headerlink" title="客户端配置"></a>客户端配置</h2><h3 id="设置-DNS"><a href="#设置-DNS" class="headerlink" title="设置 DNS"></a>设置 DNS</h3><p>将局域网设备的 DNS 服务器设置为 Mihomo 容器的 IP（<code>192.168.88.10</code>）：</p>
+<ul>
+<li><strong>路由器 DHCP 设置</strong>：在 DHCP 选项中设置 DNS 为 <code>192.168.88.10</code></li>
+<li><strong>手动设置</strong>：在设备网络设置中修改 DNS</li>
+</ul>
+<h3 id="设置路由"><a href="#设置路由" class="headerlink" title="设置路由"></a>设置路由</h3><p>Mihomo 的 TUN 模式会处理 <code>198.18.0.0/16</code> 网段的流量路由，确保数据包正确转发到 Mihomo 进程。</p>
+<hr>
+<h2 id="验证部署"><a href="#验证部署" class="headerlink" title="验证部署"></a>验证部署</h2><ol>
+<li>检查容器运行状态：<code>docker ps | grep mihomo</code></li>
+<li>查看实时日志：<code>docker logs -f mihomo</code></li>
+<li>在局域网设备上访问 <code>http://192.168.88.10:9090</code>（默认面板端口），确认 Mihomo 控制面板可访问</li>
+<li>访问 <a target="_blank" rel="noopener" href="https://ip.sb/">ip.sb</a> 检查出口 IP 是否已变更</li>
+</ol>
+<hr>
+<h2 id="视频教程"><a href="#视频教程" class="headerlink" title="视频教程"></a>视频教程</h2><iframe src="//player.bilibili.com/player.html" width="100%" height="400" frameborder="no" scrolling="no" allowfullscreen="true"></iframe></div>
+    
+      <nav class="post-nav">
+        
+          <a class="prev" href="/undefined/MiSub%E9%83%A8%E7%BD%B2%E6%95%99%E7%A8%8B/">
+            <span class="nav-label">← Previous</span>
+            <span class="nav-title">MiSub 部署教程 — 轻量级代理订阅管理面板</span>
+          </a>
+        
+        
+          <a class="next" href="/undefined/%E5%B8%B8%E7%94%A8VPS%E8%84%9A%E6%9C%AC/">
+            <span class="nav-label">Next →</span>
+            <span class="nav-title">常用 VPS 脚本合集</span>
+          </a>
+        
+      </nav>
+    
+  </article>
+</div></main>
+    <footer class="footer">
+  <div class="footer-inner">
+    <p>&copy; 2026 Sam. Powered by <a href="https://hexo.io" target="_blank" rel="noopener">Hexo</a> &amp; <a href="https://github.com/imzyb/migo" target="_blank" rel="noopener">MiGo</a>.</p>
+  </div>
+</footer>
+<script>
+(function() {
+  var toggle = document.getElementById('themeToggle');
+  if (toggle) {
+    toggle.addEventListener('click', function() {
+      var html = document.documentElement;
+      var theme = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+      html.setAttribute('data-theme', theme);
+      try { localStorage.setItem('migo-theme', theme); } catch(e) {}
+    });
+    var stored = (function(){ try { return localStorage.getItem('migo-theme'); } catch(e) {} })();
+    if (stored) document.documentElement.setAttribute('data-theme', stored);
+  }
+})();
+</script>
+  </body>
+</html>
