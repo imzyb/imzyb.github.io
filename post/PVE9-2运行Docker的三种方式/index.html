@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark">
+  <head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="author" content="Sam">
+<link rel="icon" href="/img/logo.png">
+<title>PVE 9.2 运行 Docker 的三种方式 — 从原生 OCI 到虚拟机</title>
+<meta name="description" content="详解在 Proxmox VE 9.2 中运行容器的三种方式：原生 OCI Application Container（新功能）、Docker in LXC、Docker in VM，涵盖配置步骤与场景选择。">
+<meta name="description" content="详解在 Proxmox VE 9.2 中运行容器的三种方式：原生 OCI Application Container（新功能）、Docker in LXC、Docker in VM，涵盖配置步骤与场景选择。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="PVE 9.2 运行 Docker 的三种方式 — 从原生 OCI 到虚拟机">
+<meta property="og:url" content="https://sam.xx.kg/post/PVE9-2%E8%BF%90%E8%A1%8CDocker%E7%9A%84%E4%B8%89%E7%A7%8D%E6%96%B9%E5%BC%8F/index.html">
+<meta property="og:site_name" content="Sam&#39;s Blog">
+<meta property="og:description" content="详解在 Proxmox VE 9.2 中运行容器的三种方式：原生 OCI Application Container（新功能）、Docker in LXC、Docker in VM，涵盖配置步骤与场景选择。">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2026-06-30T10:30:00.000Z">
+<meta property="article:modified_time" content="2026-06-30T10:35:28.614Z">
+<meta property="article:author" content="Sam">
+<meta property="article:tag" content="PVE">
+<meta property="article:tag" content="Proxmox">
+<meta property="article:tag" content="LXC">
+<meta property="article:tag" content="Docker">
+<meta property="article:tag" content="OCI">
+<meta property="article:tag" content="容器">
+<meta name="twitter:card" content="summary">
+<link rel="stylesheet" href="/css/style.css">
+<meta name="generator" content="Hexo 7.3.0"></head>
+  <body class="page-post">
+    <header class="header">
+  <div class="header-inner">
+    <a href="/" class="logo">[Sam&#39;s Blog]</a>
+    <nav class="nav" id="nav">
+      <a href="/">Home</a>
+      <a href="/archives">Archive</a>
+      <a href="/categories">Categories</a>
+      <a href="/tags">Tags</a>
+    </nav>
+    <button class="search-btn" id="searchBtn" aria-label="Search">
+      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+    </button>
+    <button class="menu-toggle" id="menuToggle" aria-label="Toggle menu">
+      <span></span><span></span><span></span>
+    </button>
+    <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme">
+      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+    </button>
+  </div>
+</header>
+    <main class="main"><div class="progress-bar" id="progressBar"></div>
+<div class="post-wrap">
+  <div class="post-main">
+    <article class="post-full">
+      
+      <header class="post-full-header">
+        <h1 class="post-full-title">PVE 9.2 运行 Docker 的三种方式 — 从原生 OCI 到虚拟机</h1>
+        <div class="post-full-meta">
+          <time>6月 30, 2026</time>
+          
+          
+            <span class="post-category">服务器运维</span>
+          
+          
+            <span>2.6k words</span>
+            <span>11 min read</span>
+          
+        </div>
+        
+          <div class="post-full-tags">
+            
+              <a class="tag" href="/tags/PVE/">#PVE</a>
+            
+              <a class="tag" href="/tags/Proxmox/">#Proxmox</a>
+            
+              <a class="tag" href="/tags/LXC/">#LXC</a>
+            
+              <a class="tag" href="/tags/Docker/">#Docker</a>
+            
+              <a class="tag" href="/tags/OCI/">#OCI</a>
+            
+              <a class="tag" href="/tags/%E5%AE%B9%E5%99%A8/">#容器</a>
+            
+          </div>
+        
+      </header>
+      <div class="post-content" id="postContent"><blockquote>
+<p><strong>PVE 9.2</strong> 引入了 <strong>OCI Application Container</strong>（技术预览），可以直接从 Docker Hub 拉取 OCI 镜像并在 LXC 中运行，无需安装 Docker 守护进程。本文对比三种方式，覆盖从原生 OCI 到传统 Docker in VM 的完整方案。</p>
+</blockquote>
+<hr>
+<h2 id="目录"><a href="#目录" class="headerlink" title="目录"></a>目录</h2><ul>
+<li><a href="#%E4%B8%89%E7%A7%8D%E6%96%B9%E5%BC%8F%E5%AF%B9%E6%AF%94">三种方式对比</a></li>
+<li><a href="#%E6%96%B9%E5%BC%8F%E4%B8%80%E5%8E%9F%E7%94%9F-oci-application-containerpve-9x-%E6%96%B0%E5%8A%9F%E8%83%BD">方式一：原生 OCI Application Container（PVE 9.x 新功能）</a></li>
+<li><a href="#%E6%96%B9%E5%BC%8F%E4%BA%8Cdocker-in-lxc-%E5%AE%B9%E5%99%A8">方式二：Docker in LXC 容器</a></li>
+<li><a href="#%E6%96%B9%E5%BC%8F%E4%B8%89docker-in-vm-%E8%99%9A%E6%8B%9F%E6%9C%BA">方式三：Docker in VM 虚拟机</a></li>
+<li><a href="#%E5%9C%BA%E6%99%AF%E9%80%89%E6%8B%A9%E6%8C%87%E5%8D%97">场景选择指南</a></li>
+<li><a href="#%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98">常见问题</a></li>
+</ul>
+<hr>
+<h2 id="三种方式对比"><a href="#三种方式对比" class="headerlink" title="三种方式对比"></a>三种方式对比</h2><table>
+<thead>
+<tr>
+<th>特性</th>
+<th>方式一：OCI App Container</th>
+<th>方式二：Docker in LXC</th>
+<th>方式三：Docker in VM</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>是否需要 Docker daemon</strong></td>
+<td>否（PVE 原生运行）</td>
+<td>是</td>
+<td>是</td>
+</tr>
+<tr>
+<td><strong>隔离性</strong></td>
+<td>中等（共享内核）</td>
+<td>中等（共享内核）</td>
+<td><strong>高</strong>（独立内核）</td>
+</tr>
+<tr>
+<td><strong>性能开销</strong></td>
+<td><strong>极低</strong></td>
+<td>低</td>
+<td>中等</td>
+</tr>
+<tr>
+<td><strong>镜像来源</strong></td>
+<td>Docker Hub &#x2F; 任意 OCI Registry</td>
+<td>Docker Hub</td>
+<td>Docker Hub</td>
+</tr>
+<tr>
+<td><strong>支持 Docker Compose</strong></td>
+<td>否（路线图中）</td>
+<td>是</td>
+<td>是</td>
+</tr>
+<tr>
+<td><strong>PVE 管理集成</strong></td>
+<td><strong>完全集成</strong>（WebUI 管理）</td>
+<td>有限（需进入容器操作）</td>
+<td>有限</td>
+</tr>
+<tr>
+<td><strong>快照&#x2F;备份</strong></td>
+<td>PVE 原生支持</td>
+<td>PVE 原生支持</td>
+<td>PVE 原生支持</td>
+</tr>
+<tr>
+<td><strong>Live Migration</strong></td>
+<td>重启迁移</td>
+<td>重启迁移</td>
+<td>支持</td>
+</tr>
+<tr>
+<td><strong>兼容性</strong></td>
+<td>单进程应用最佳</td>
+<td>多数 Docker 应用</td>
+<td><strong>全部</strong> Docker 应用</td>
+</tr>
+<tr>
+<td><strong>状态</strong></td>
+<td><strong>技术预览</strong></td>
+<td>成熟</td>
+<td>成熟</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="方式一：原生-OCI-Application-Container（PVE-9-x-新功能）"><a href="#方式一：原生-OCI-Application-Container（PVE-9-x-新功能）" class="headerlink" title="方式一：原生 OCI Application Container（PVE 9.x 新功能）"></a>方式一：原生 OCI Application Container（PVE 9.x 新功能）</h2><p>PVE 9.x 引入了 <strong>OCI（Open Container Initiative）镜像支持</strong> 作为技术预览。你可以直接从 Docker Hub 或任何 OCI 注册表拉取镜像，PVE 会自动将其转换为 LXC 容器运行——<strong>不需要安装 Docker</strong>。</p>
+<h3 id="适用场景"><a href="#适用场景" class="headerlink" title="适用场景"></a>适用场景</h3><ul>
+<li>运行单进程&#x2F;单服务的 OCI 镜像（Nginx、Redis、MySQL、PostgreSQL 等）</li>
+<li>需要 PVE 原生管理（WebUI 创建&#x2F;监控&#x2F;备份）</li>
+<li>不想在系统里装 Docker daemon</li>
+</ul>
+<h3 id="拉取-OCI-镜像"><a href="#拉取-OCI-镜像" class="headerlink" title="拉取 OCI 镜像"></a>拉取 OCI 镜像</h3><h4 id="方式-A：WebUI-拉取"><a href="#方式-A：WebUI-拉取" class="headerlink" title="方式 A：WebUI 拉取"></a>方式 A：WebUI 拉取</h4><ol>
+<li>左侧选择节点 → 展开 <strong>local (pve1)</strong> 存储</li>
+<li>切换到 <strong>CT Templates</strong> 标签页</li>
+<li>点击 <strong>Pull from OCI registry</strong></li>
+<li>输入镜像名称（如 <code>docker.io/library/nginx:latest</code>）</li>
+<li>点击 <strong>Pull</strong>，等待下载完成</li>
+</ol>
+<h4 id="方式-B：CLI-拉取"><a href="#方式-B：CLI-拉取" class="headerlink" title="方式 B：CLI 拉取"></a>方式 B：CLI 拉取</h4><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 拉取 Nginx 镜像</span></span><br><span class="line">pveam update</span><br><span class="line">pct oci pull docker.io/library/nginx:latest</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看已下载的 OCI 模板</span></span><br><span class="line">pveam list <span class="built_in">local</span> --oci</span><br></pre></td></tr></table></figure>
+
+<h3 id="支持的镜像格式"><a href="#支持的镜像格式" class="headerlink" title="支持的镜像格式"></a>支持的镜像格式</h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">docker.io/library/nginx:latest</span><br><span class="line">docker.io/library/redis:7-alpine</span><br><span class="line">docker.io/library/postgres:16</span><br><span class="line">docker.io/library/mysql:8.0</span><br><span class="line">ghcr.io/owner/image:tag</span><br><span class="line">registry.example.com/myapp:1.0</span><br></pre></td></tr></table></figure>
+
+<h3 id="创建-Application-Container"><a href="#创建-Application-Container" class="headerlink" title="创建 Application Container"></a>创建 Application Container</h3><ol>
+<li>点击 <strong>Create CT</strong></li>
+<li><strong>General</strong> 页：设置 CT ID、密码</li>
+<li><strong>Template</strong> 页：选择已下载的 OCI 镜像</li>
+<li><strong>Root Disk</strong>：设置磁盘大小</li>
+<li><strong>CPU &#x2F; Memory</strong>：按需分配</li>
+<li><strong>Network</strong>：<ul>
+<li>桥接 <code>vmbr0</code></li>
+<li>勾选 <strong>Host-Managed IP</strong>（让宿主管理 IP 配置，容器内不需要 DHCP 客户端）</li>
+</ul>
+</li>
+<li>确认并 <strong>Finish</strong></li>
+</ol>
+<h3 id="CLI-创建"><a href="#CLI-创建" class="headerlink" title="CLI 创建"></a>CLI 创建</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 从 OCI 镜像直接创建容器</span></span><br><span class="line">pct create 200 <span class="built_in">local</span>:oci/nginx:latest \</span><br><span class="line">  --storage local-zfs \</span><br><span class="line">  --rootfs 4 \</span><br><span class="line">  --hostname nginx-app \</span><br><span class="line">  --net0 name=eth0,bridge=vmbr0,ip=dhcp,host-managed=1</span><br><span class="line"></span><br><span class="line"><span class="comment"># 启动</span></span><br><span class="line">pct start 200</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看运行状态</span></span><br><span class="line">pct status 200</span><br><span class="line">pct enter 200</span><br></pre></td></tr></table></figure>
+
+<h3 id="访问应用"><a href="#访问应用" class="headerlink" title="访问应用"></a>访问应用</h3><p>容器启动后，通过 <code>pct enter 200</code> 进入，或通过宿主 IP + 映射端口访问。</p>
+<blockquote>
+<p>由于 Application Container 是单进程容器，PVE 会自动使用 <code>host-managed</code> 网络模式，宿主负责 IP 配置。如需端口映射，可在容器内配置，或结合 PVE Firewall 规则。</p>
+</blockquote>
+<h3 id="PVE-9-2-Application-Container-改进"><a href="#PVE-9-2-Application-Container-改进" class="headerlink" title="PVE 9.2 Application Container 改进"></a>PVE 9.2 Application Container 改进</h3><table>
+<thead>
+<tr>
+<th>改进点</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>&#x2F;dev&#x2F;shm tmpfs</strong></td>
+<td>自动挂载 tmpfs 到 &#x2F;dev&#x2F;shm，符合 OCI Runtime 规范</td>
+</tr>
+<tr>
+<td><strong>OCI User 属性</strong></td>
+<td>自动识别并应用 OCI 镜像中的 USER 指令</td>
+</tr>
+<tr>
+<td><strong>idmap 挂载选项</strong></td>
+<td>支持对单个挂载点自定义 UID&#x2F;GID 映射</td>
+</tr>
+<tr>
+<td><strong>keepattrs 选项</strong></td>
+<td>继承已有挂载点目录的属主和权限</td>
+</tr>
+</tbody></table>
+<h3 id="注意事项"><a href="#注意事项" class="headerlink" title="注意事项"></a>注意事项</h3><ul>
+<li>Application Container 是 <strong>技术预览</strong>，不建议用于关键生产环境</li>
+<li>适合单进程应用，复杂多进程&#x2F;有 init 系统的镜像可能不兼容</li>
+<li>Docker Compose 支持在路线图中，暂时不支持</li>
+<li>部分需要特殊内核模块或设备直通的应用可能需要 Docker in VM</li>
+</ul>
+<hr>
+<h2 id="方式二：Docker-in-LXC-容器"><a href="#方式二：Docker-in-LXC-容器" class="headerlink" title="方式二：Docker in LXC 容器"></a>方式二：Docker in LXC 容器</h2><p>在 LXC 容器内安装 Docker daemon，是 PVE 上部署 Docker 应用最常用的方式。PVE 9.2 新增的 <code>idmap</code> 和 <code>keepattrs</code> 挂载选项让权限管理更灵活。</p>
+<h3 id="准备工作：创建-LXC-容器"><a href="#准备工作：创建-LXC-容器" class="headerlink" title="准备工作：创建 LXC 容器"></a>准备工作：创建 LXC 容器</h3><ol>
+<li><strong>创建容器</strong>：使用 Ubuntu 24.04 或 Debian 12 模板</li>
+<li><strong>关键配置</strong>：</li>
+</ol>
+<table>
+<thead>
+<tr>
+<th>配置项</th>
+<th>必须</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Unprivileged container</strong></td>
+<td>否</td>
+<td>默认即可，但 Docker 需特殊配置</td>
+</tr>
+<tr>
+<td><strong>Nesting</strong></td>
+<td><strong>是</strong></td>
+<td>必须启用，容器的容器（Docker）需要</td>
+</tr>
+<tr>
+<td><strong>特权容器</strong></td>
+<td>推荐</td>
+<td>非受信环境建议用 VM</td>
+</tr>
+</tbody></table>
+<h3 id="在-WebUI-中配置"><a href="#在-WebUI-中配置" class="headerlink" title="在 WebUI 中配置"></a>在 WebUI 中配置</h3><p>创建 CT 时在 <strong>Options</strong> 标签页：</p>
+<ul>
+<li><strong>Unprivileged</strong> → 取消勾选（使用特权容器，Docker 兼容性更好）</li>
+<li><strong>Nesting</strong> → 勾选</li>
+</ul>
+<p>或创建后用 CLI 修改：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">pct <span class="built_in">set</span> 100 -features nesting=1</span><br><span class="line">pct <span class="built_in">set</span> 100 -unprivileged 0</span><br><span class="line">pct reboot 100</span><br></pre></td></tr></table></figure>
+
+<h3 id="安装-Docker"><a href="#安装-Docker" class="headerlink" title="安装 Docker"></a>安装 Docker</h3><p>进入容器，安装 Docker：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">pct enter 100</span><br><span class="line"></span><br><span class="line"><span class="comment"># 安装 Docker（Ubuntu）</span></span><br><span class="line">apt update</span><br><span class="line">apt install -y docker.io</span><br><span class="line"></span><br><span class="line"><span class="comment"># 或使用官方脚本（Debian/Ubuntu）</span></span><br><span class="line">curl -fsSL https://get.docker.com | sh</span><br><span class="line"></span><br><span class="line"><span class="comment"># 验证</span></span><br><span class="line">docker --version</span><br><span class="line">docker run hello-world</span><br></pre></td></tr></table></figure>
+
+<h3 id="PVE-9-2-新特性：idmap-挂载点"><a href="#PVE-9-2-新特性：idmap-挂载点" class="headerlink" title="PVE 9.2 新特性：idmap 挂载点"></a>PVE 9.2 新特性：idmap 挂载点</h3><p>PVE 9.2 新增 <code>idmap</code> 和 <code>keepattrs</code> 挂载选项，解决 Docker 卷挂载中的权限问题。</p>
+<h4 id="场景：将宿主目录挂载到容器供-Docker-使用"><a href="#场景：将宿主目录挂载到容器供-Docker-使用" class="headerlink" title="场景：将宿主目录挂载到容器供 Docker 使用"></a>场景：将宿主目录挂载到容器供 Docker 使用</h4><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 在 PVE 宿主机上创建共享目录</span></span><br><span class="line"><span class="built_in">mkdir</span> -p /mnt/bindmounts/docker-data</span><br><span class="line"></span><br><span class="line"><span class="comment"># 添加到容器（CLI）</span></span><br><span class="line">pct <span class="built_in">set</span> 100 -mp0 /mnt/bindmounts/docker-data,mp=/data,idmap=passthrough</span><br><span class="line"></span><br><span class="line"><span class="comment"># 或者只映射特定 UID</span></span><br><span class="line">pct <span class="built_in">set</span> 100 -mp1 /mnt/bindmounts/docker-data,mp=/appdata,idmap=u:0:100000:65536;g:0:100000:65536</span><br></pre></td></tr></table></figure>
+
+<p><code>idmap</code> 参数详解：</p>
+<table>
+<thead>
+<tr>
+<th>值</th>
+<th>效果</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>passthrough</code></td>
+<td>直接穿透，容器内 ID &#x3D; 宿主 ID</td>
+</tr>
+<tr>
+<td><code>u:容器UID:宿主UID:数量;g:容器GID:宿主GID:数量</code></td>
+<td>自定义映射范围</td>
+</tr>
+<tr>
+<td><code>u:0:100000:65536</code></td>
+<td>将容器内 UID 0-65535 映射到宿主 UID 100000-165535</td>
+</tr>
+</tbody></table>
+<h4 id="keepattrs-选项"><a href="#keepattrs-选项" class="headerlink" title="keepattrs 选项"></a>keepattrs 选项</h4><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 继承已有目录的属主和权限（而非被容器用户覆盖）</span></span><br><span class="line">pct <span class="built_in">set</span> 100 -mp2 /mnt/bindmounts/data,mp=/persistent,keepattrs=1</span><br></pre></td></tr></table></figure>
+
+<h3 id="Docker-Compose-示例"><a href="#Docker-Compose-示例" class="headerlink" title="Docker Compose 示例"></a>Docker Compose 示例</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">pct enter 100</span><br><span class="line"></span><br><span class="line">apt install -y docker-compose-plugin</span><br><span class="line"></span><br><span class="line"><span class="built_in">mkdir</span> -p /opt/stack &amp;&amp; <span class="built_in">cd</span> /opt/stack</span><br><span class="line"></span><br><span class="line"><span class="comment"># 创建 compose.yml</span></span><br><span class="line"><span class="built_in">cat</span> &gt; compose.yml &lt;&lt; <span class="string">&#x27;EOF&#x27;</span></span><br><span class="line">services:</span><br><span class="line">  nginx:</span><br><span class="line">    image: nginx:alpine</span><br><span class="line">    ports:</span><br><span class="line">      - <span class="string">&quot;80:80&quot;</span></span><br><span class="line">    volumes:</span><br><span class="line">      - ./html:/usr/share/nginx/html</span><br><span class="line"></span><br><span class="line">  redis:</span><br><span class="line">    image: redis:7-alpine</span><br><span class="line"></span><br><span class="line">  app:</span><br><span class="line">    image: your-app:latest</span><br><span class="line">    depends_on:</span><br><span class="line">      - redis</span><br><span class="line">EOF</span><br><span class="line"></span><br><span class="line">docker compose up -d</span><br></pre></td></tr></table></figure>
+
+<h3 id="性能优化"><a href="#性能优化" class="headerlink" title="性能优化"></a>性能优化</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 使用 overlay2 存储驱动（默认）</span></span><br><span class="line">docker info | grep Storage</span><br><span class="line"></span><br><span class="line"><span class="comment"># 限制 Docker 日志大小</span></span><br><span class="line"><span class="built_in">cat</span> &gt; /etc/docker/daemon.json &lt;&lt; <span class="string">&#x27;EOF&#x27;</span></span><br><span class="line">&#123;</span><br><span class="line">  <span class="string">&quot;log-driver&quot;</span>: <span class="string">&quot;json-file&quot;</span>,</span><br><span class="line">  <span class="string">&quot;log-opts&quot;</span>: &#123;</span><br><span class="line">    <span class="string">&quot;max-size&quot;</span>: <span class="string">&quot;10m&quot;</span>,</span><br><span class="line">    <span class="string">&quot;max-file&quot;</span>: <span class="string">&quot;3&quot;</span></span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line">EOF</span><br><span class="line">systemctl restart docker</span><br></pre></td></tr></table></figure>
+
+<h3 id="安全性建议"><a href="#安全性建议" class="headerlink" title="安全性建议"></a>安全性建议</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 1. 限制容器资源（PVE 层面）</span></span><br><span class="line">pct <span class="built_in">set</span> 100 -memory 2048 -swap 512 -cores 2</span><br><span class="line"></span><br><span class="line"><span class="comment"># 2. 使用非 root 运行 Docker</span></span><br><span class="line">groupadd docker</span><br><span class="line">usermod -aG docker your-user</span><br><span class="line"></span><br><span class="line"><span class="comment"># 3. 启用 Docker 内容信任</span></span><br><span class="line"><span class="built_in">export</span> DOCKER_CONTENT_TRUST=1</span><br><span class="line"></span><br><span class="line"><span class="comment"># 4. 定期更新</span></span><br><span class="line">pct enter 100 -- apt update &amp;&amp; apt upgrade -y</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="方式三：Docker-in-VM-虚拟机"><a href="#方式三：Docker-in-VM-虚拟机" class="headerlink" title="方式三：Docker in VM 虚拟机"></a>方式三：Docker in VM 虚拟机</h2><p>在完整的虚拟机中安装 Docker，获得最高级别的隔离性。适合多租户、不信任的工作负载、需要 Live Migration 的场景。</p>
+<h3 id="创建-VM"><a href="#创建-VM" class="headerlink" title="创建 VM"></a>创建 VM</h3><ol>
+<li><strong>Create VM</strong> → 选择 Ubuntu Server &#x2F; Debian ISO</li>
+<li><strong>System</strong>：BIOS → <code>OVMF (UEFI)</code>，勾选 <strong>Qemu Agent</strong></li>
+<li><strong>Disks</strong>：<code>VirtIO Block</code>，建议 20 GB+</li>
+<li><strong>CPU</strong>：Type → <code>host</code></li>
+<li><strong>Network</strong>：<code>VirtIO (paravirtualized)</code></li>
+</ol>
+<h3 id="安装-Docker-1"><a href="#安装-Docker-1" class="headerlink" title="安装 Docker"></a>安装 Docker</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 进入 VM 控制台</span></span><br><span class="line"><span class="comment"># 安装 Docker</span></span><br><span class="line">curl -fsSL https://get.docker.com | sh</span><br><span class="line"></span><br><span class="line"><span class="comment"># 安装 Compose 插件</span></span><br><span class="line">apt install -y docker-compose-plugin</span><br><span class="line"></span><br><span class="line"><span class="comment"># 验证</span></span><br><span class="line">docker run hello-world</span><br></pre></td></tr></table></figure>
+
+<h3 id="Docker-Compose-部署完整栈"><a href="#Docker-Compose-部署完整栈" class="headerlink" title="Docker Compose 部署完整栈"></a>Docker Compose 部署完整栈</h3><figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="comment"># /opt/project/compose.yml</span></span><br><span class="line"><span class="attr">services:</span></span><br><span class="line">  <span class="attr">traefik:</span></span><br><span class="line">    <span class="attr">image:</span> <span class="string">traefik:v3.1</span></span><br><span class="line">    <span class="attr">container_name:</span> <span class="string">traefik</span></span><br><span class="line">    <span class="attr">ports:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">&quot;80:80&quot;</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">&quot;443:443&quot;</span></span><br><span class="line">    <span class="attr">volumes:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">/var/run/docker.sock:/var/run/docker.sock:ro</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">./traefik.yml:/traefik.yml:ro</span></span><br><span class="line">    <span class="attr">labels:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">&quot;traefik.enable=true&quot;</span></span><br><span class="line"></span><br><span class="line">  <span class="attr">portainer:</span></span><br><span class="line">    <span class="attr">image:</span> <span class="string">portainer/portainer-ce:latest</span></span><br><span class="line">    <span class="attr">container_name:</span> <span class="string">portainer</span></span><br><span class="line">    <span class="attr">ports:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">&quot;9000:9000&quot;</span></span><br><span class="line">    <span class="attr">volumes:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">/var/run/docker.sock:/var/run/docker.sock:ro</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">portainer_data:/data</span></span><br><span class="line"></span><br><span class="line">  <span class="attr">watchtower:</span></span><br><span class="line">    <span class="attr">image:</span> <span class="string">containrrr/watchtower</span></span><br><span class="line">    <span class="attr">container_name:</span> <span class="string">watchtower</span></span><br><span class="line">    <span class="attr">volumes:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">/var/run/docker.sock:/var/run/docker.sock:ro</span></span><br><span class="line"></span><br><span class="line"><span class="attr">volumes:</span></span><br><span class="line">  <span class="attr">portainer_data:</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="VM-专用优化"><a href="#VM-专用优化" class="headerlink" title="VM 专用优化"></a>VM 专用优化</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 1. 安装 QEMU Guest Agent（WebUI 可见 IP、内存等）</span></span><br><span class="line">apt install -y qemu-guest-agent</span><br><span class="line"></span><br><span class="line"><span class="comment"># 2. 开启 BBPR（Better Business Performance Reporting）</span></span><br><span class="line"><span class="comment"># CPU Type 选 host 即可获得最大性能</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 3. 磁盘使用 VirtIO + iothread</span></span><br><span class="line"><span class="comment"># WebUI → Hardware → 磁盘 → 启用 IO Thread</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 4. VirtIO SCSI single 控制器（性能最佳）</span></span><br><span class="line"><span class="comment"># WebUI → Hardware → 添加 SCSI 控制器 → VirtIO SCSI single</span></span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="场景选择指南"><a href="#场景选择指南" class="headerlink" title="场景选择指南"></a>场景选择指南</h2><h3 id="选-Application-Container（OCI）"><a href="#选-Application-Container（OCI）" class="headerlink" title="选 Application Container（OCI）"></a>选 Application Container（OCI）</h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">你只需要跑一个 Nginx/Redis/PostgreSQL 单服务</span><br><span class="line">→ 不想装 Docker</span><br><span class="line">→ 想用 PVE WebUI 统一管理</span><br><span class="line">→ 愿意接受技术预览的稳定性</span><br><span class="line">→ 选 OCI Application Container</span><br></pre></td></tr></table></figure>
+
+<h3 id="选-Docker-in-LXC"><a href="#选-Docker-in-LXC" class="headerlink" title="选 Docker in LXC"></a>选 Docker in LXC</h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">你需要 Docker Compose 编排多个服务</span><br><span class="line">→ 需要极低开销</span><br><span class="line">→ 不需要 Live Migration</span><br><span class="line">→ 服务在可信环境运行</span><br><span class="line">→ 选 Docker in LXC</span><br></pre></td></tr></table></figure>
+
+<h3 id="选-Docker-in-VM"><a href="#选-Docker-in-VM" class="headerlink" title="选 Docker in VM"></a>选 Docker in VM</h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">多租户 / 不信任的工作负载</span><br><span class="line">→ 需要 Live Migration / 高可用</span><br><span class="line">→ 需要完整内核隔离</span><br><span class="line">→ 需要运行特殊内核模块</span><br><span class="line">→ 生产环境核心服务</span><br><span class="line">→ 选 Docker in VM</span><br></pre></td></tr></table></figure>
+
+<h3 id="混合使用"><a href="#混合使用" class="headerlink" title="混合使用"></a>混合使用</h3><p>实际部署中，三种方式可以混合使用：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">PVE Host</span><br><span class="line">├── OCI App Container: Nginx (反向代理)</span><br><span class="line">├── LXC + Docker:      Compose 应用栈 (WordPress + MySQL)</span><br><span class="line">├── VM + Docker:       核心业务 + Portainer 管理</span><br><span class="line">└── LXC + Docker:      开发/测试环境</span><br></pre></td></tr></table></figure>
+
+<p>所有容器&#x2F;虚拟机统一通过 PVE WebUI 管理备份、快照、监控。</p>
+<hr>
+<h2 id="常见问题"><a href="#常见问题" class="headerlink" title="常见问题"></a>常见问题</h2><h3 id="Q1：Application-Container-拉取镜像失败？"><a href="#Q1：Application-Container-拉取镜像失败？" class="headerlink" title="Q1：Application Container 拉取镜像失败？"></a>Q1：Application Container 拉取镜像失败？</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 检查 OCI 注册表地址是否正确</span></span><br><span class="line"><span class="comment"># 公开镜像无需认证，私有镜像需先 docker login 导出认证</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 默认拉取 docker.io 官方库，其他仓库需写全路径</span></span><br><span class="line">pct oci pull ghcr.io/owner/image:tag</span><br><span class="line"></span><br><span class="line"><span class="comment"># 检查存储空间</span></span><br><span class="line"><span class="built_in">df</span> -h</span><br></pre></td></tr></table></figure>
+
+<h3 id="Q2：LXC-内-Docker-报-“failed-to-create-cgroup”？"><a href="#Q2：LXC-内-Docker-报-“failed-to-create-cgroup”？" class="headerlink" title="Q2：LXC 内 Docker 报 “failed to create cgroup”？"></a>Q2：LXC 内 Docker 报 “failed to create cgroup”？</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 方案一：确保启用了 nesting</span></span><br><span class="line">pct <span class="built_in">set</span> CTID -features nesting=1</span><br><span class="line"></span><br><span class="line"><span class="comment"># 方案二：在 LXC 配置中追加</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;lxc.cgroup2.memory.max: 1073741824&quot;</span> &gt;&gt; /etc/pve/lxc/CTID.conf</span><br><span class="line">pct reboot CTID</span><br></pre></td></tr></table></figure>
+
+<h3 id="Q3：Docker-in-LXC-磁盘权限问题？"><a href="#Q3：Docker-in-LXC-磁盘权限问题？" class="headerlink" title="Q3：Docker in LXC 磁盘权限问题？"></a>Q3：Docker in LXC 磁盘权限问题？</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 使用 PVE 9.2 的 idmap 功能</span></span><br><span class="line">pct <span class="built_in">set</span> CTID -mp0 /mnt/bindmounts/data,mp=/data,idmap=passthrough</span><br><span class="line"></span><br><span class="line"><span class="comment"># 或者在 Docker Compose 中指定用户</span></span><br><span class="line">services:</span><br><span class="line">  app:</span><br><span class="line">    user: <span class="string">&quot;1000:1000&quot;</span></span><br><span class="line">    volumes:</span><br><span class="line">      - ./data:/data</span><br></pre></td></tr></table></figure>
+
+<h3 id="Q4：OCI-App-Container-和-Docker-in-LXC-性能对比？"><a href="#Q4：OCI-App-Container-和-Docker-in-LXC-性能对比？" class="headerlink" title="Q4：OCI App Container 和 Docker in LXC 性能对比？"></a>Q4：OCI App Container 和 Docker in LXC 性能对比？</h3><p>OCI App Container 略优（无 Docker daemon 开销），但实际差异通常 &lt; 5%。选择时优先考虑功能和隔离需求，而非性能。</p>
+<h3 id="Q5：Application-Container-的-Compose-支持何时可用？"><a href="#Q5：Application-Container-的-Compose-支持何时可用？" class="headerlink" title="Q5：Application Container 的 Compose 支持何时可用？"></a>Q5：Application Container 的 Compose 支持何时可用？</h3><p>PVE 路线图显示 Compose Specification 支持正在开发中（技术预览阶段），会在后续版本逐步推出。当前可用 <code>pct</code> 命令结合 Shell 脚本编排多容器。</p>
+<h3 id="Q6：Docker-in-VM-性能损耗大吗？"><a href="#Q6：Docker-in-VM-性能损耗大吗？" class="headerlink" title="Q6：Docker in VM 性能损耗大吗？"></a>Q6：Docker in VM 性能损耗大吗？</h3><p>使用 VirtIO 设备 + CPU host 模式 + IO Thread，性能损耗通常在 5-10% 以内。适合绝大多数生产场景。</p>
+<hr>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>Proxmox VE 9.2 提供了三种运行容器化应用的方式，覆盖从轻量到全隔离的全场景：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">OCI App Container</span><br><span class="line">├── 无需 Docker</span><br><span class="line">├── PVE WebUI 原生管理</span><br><span class="line">├── 技术预览</span><br><span class="line">└── 适合单服务</span><br><span class="line"></span><br><span class="line">Docker in LXC</span><br><span class="line">├── 需 Docker daemon</span><br><span class="line">├── PVE 9.2 idmap/keepattrs</span><br><span class="line">├── 成熟稳定</span><br><span class="line">└── 适合 Compose 栈</span><br><span class="line"></span><br><span class="line">Docker in VM</span><br><span class="line">├── 完全隔离</span><br><span class="line">├── Live Migration 支持</span><br><span class="line">├── 最成熟</span><br><span class="line">└── 适合生产关键业务</span><br></pre></td></tr></table></figure>
+
+<p>对于探索新功能的用户，OCI Application Container 值得一试——它代表了 PVE 容器化管理的未来方向。对于生产环境，Docker in VM 仍然是最稳妥的选择。</p>
+<hr>
+<p><em>本文最后更新于 2026 年 6 月，对应 Proxmox VE 9.2-1。Application Container 为技术预览功能。</em></p>
+</div>
+      
+        <nav class="post-nav">
+          
+          
+            <a class="next" href="/post/WireGuard%E8%87%AA%E5%BB%BA%E5%86%85%E7%BD%91%E4%BA%92%E8%81%94/">
+              <span class="nav-label">Next →</span>
+              <span class="nav-title">WireGuard 自建内网互联 — 多站点组网完整指南</span>
+            </a>
+          
+        </nav>
+      
+    </article>
+    
+    
+      <div class="related-posts">
+        <h3 class="related-title">Recent Posts</h3>
+        <div class="related-list">
+          
+            <a class="related-item" href="/post/WireGuard%E8%87%AA%E5%BB%BA%E5%86%85%E7%BD%91%E4%BA%92%E8%81%94/">
+              <span class="related-item-title">WireGuard 自建内网互联 — 多站点组网完整指南</span>
+              <span class="related-item-date">6月 30, 2026</span>
+            </a>
+          
+            <a class="related-item" href="/post/PVE9-2%E5%AE%8C%E6%95%B4%E4%BD%BF%E7%94%A8%E6%95%99%E7%A8%8B/">
+              <span class="related-item-title">Proxmox VE 9.2 完整使用教程 — 从安装到生产部署</span>
+              <span class="related-item-date">6月 30, 2026</span>
+            </a>
+          
+            <a class="related-item" href="/post/MiGate%E9%83%A8%E7%BD%B2%E6%95%99%E7%A8%8B/">
+              <span class="related-item-title">MiGate 部署教程 — 轻量级 VPS 代理管理面板</span>
+              <span class="related-item-date">6月 29, 2026</span>
+            </a>
+          
+        </div>
+      </div>
+    
+  </div>
+  <aside class="sidebar post-sidebar">
+    <div class="sidebar-sticky">
+      <div class="sidebar-card">
+        <div class="profile-section-title">目录</div>
+        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%9B%AE%E5%BD%95"><span class="toc-text">目录</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E7%A7%8D%E6%96%B9%E5%BC%8F%E5%AF%B9%E6%AF%94"><span class="toc-text">三种方式对比</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%96%B9%E5%BC%8F%E4%B8%80%EF%BC%9A%E5%8E%9F%E7%94%9F-OCI-Application-Container%EF%BC%88PVE-9-x-%E6%96%B0%E5%8A%9F%E8%83%BD%EF%BC%89"><span class="toc-text">方式一：原生 OCI Application Container（PVE 9.x 新功能）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%80%82%E7%94%A8%E5%9C%BA%E6%99%AF"><span class="toc-text">适用场景</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%8B%89%E5%8F%96-OCI-%E9%95%9C%E5%83%8F"><span class="toc-text">拉取 OCI 镜像</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%96%B9%E5%BC%8F-A%EF%BC%9AWebUI-%E6%8B%89%E5%8F%96"><span class="toc-text">方式 A：WebUI 拉取</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%96%B9%E5%BC%8F-B%EF%BC%9ACLI-%E6%8B%89%E5%8F%96"><span class="toc-text">方式 B：CLI 拉取</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%94%AF%E6%8C%81%E7%9A%84%E9%95%9C%E5%83%8F%E6%A0%BC%E5%BC%8F"><span class="toc-text">支持的镜像格式</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%88%9B%E5%BB%BA-Application-Container"><span class="toc-text">创建 Application Container</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#CLI-%E5%88%9B%E5%BB%BA"><span class="toc-text">CLI 创建</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%AE%BF%E9%97%AE%E5%BA%94%E7%94%A8"><span class="toc-text">访问应用</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#PVE-9-2-Application-Container-%E6%94%B9%E8%BF%9B"><span class="toc-text">PVE 9.2 Application Container 改进</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9"><span class="toc-text">注意事项</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%96%B9%E5%BC%8F%E4%BA%8C%EF%BC%9ADocker-in-LXC-%E5%AE%B9%E5%99%A8"><span class="toc-text">方式二：Docker in LXC 容器</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%87%86%E5%A4%87%E5%B7%A5%E4%BD%9C%EF%BC%9A%E5%88%9B%E5%BB%BA-LXC-%E5%AE%B9%E5%99%A8"><span class="toc-text">准备工作：创建 LXC 容器</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%9C%A8-WebUI-%E4%B8%AD%E9%85%8D%E7%BD%AE"><span class="toc-text">在 WebUI 中配置</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AE%89%E8%A3%85-Docker"><span class="toc-text">安装 Docker</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#PVE-9-2-%E6%96%B0%E7%89%B9%E6%80%A7%EF%BC%9Aidmap-%E6%8C%82%E8%BD%BD%E7%82%B9"><span class="toc-text">PVE 9.2 新特性：idmap 挂载点</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%9C%BA%E6%99%AF%EF%BC%9A%E5%B0%86%E5%AE%BF%E4%B8%BB%E7%9B%AE%E5%BD%95%E6%8C%82%E8%BD%BD%E5%88%B0%E5%AE%B9%E5%99%A8%E4%BE%9B-Docker-%E4%BD%BF%E7%94%A8"><span class="toc-text">场景：将宿主目录挂载到容器供 Docker 使用</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#keepattrs-%E9%80%89%E9%A1%B9"><span class="toc-text">keepattrs 选项</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Docker-Compose-%E7%A4%BA%E4%BE%8B"><span class="toc-text">Docker Compose 示例</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96"><span class="toc-text">性能优化</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AE%89%E5%85%A8%E6%80%A7%E5%BB%BA%E8%AE%AE"><span class="toc-text">安全性建议</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%96%B9%E5%BC%8F%E4%B8%89%EF%BC%9ADocker-in-VM-%E8%99%9A%E6%8B%9F%E6%9C%BA"><span class="toc-text">方式三：Docker in VM 虚拟机</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%88%9B%E5%BB%BA-VM"><span class="toc-text">创建 VM</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AE%89%E8%A3%85-Docker-1"><span class="toc-text">安装 Docker</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Docker-Compose-%E9%83%A8%E7%BD%B2%E5%AE%8C%E6%95%B4%E6%A0%88"><span class="toc-text">Docker Compose 部署完整栈</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#VM-%E4%B8%93%E7%94%A8%E4%BC%98%E5%8C%96"><span class="toc-text">VM 专用优化</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9C%BA%E6%99%AF%E9%80%89%E6%8B%A9%E6%8C%87%E5%8D%97"><span class="toc-text">场景选择指南</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%80%89-Application-Container%EF%BC%88OCI%EF%BC%89"><span class="toc-text">选 Application Container（OCI）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%80%89-Docker-in-LXC"><span class="toc-text">选 Docker in LXC</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%80%89-Docker-in-VM"><span class="toc-text">选 Docker in VM</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%B7%B7%E5%90%88%E4%BD%BF%E7%94%A8"><span class="toc-text">混合使用</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98"><span class="toc-text">常见问题</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Q1%EF%BC%9AApplication-Container-%E6%8B%89%E5%8F%96%E9%95%9C%E5%83%8F%E5%A4%B1%E8%B4%A5%EF%BC%9F"><span class="toc-text">Q1：Application Container 拉取镜像失败？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Q2%EF%BC%9ALXC-%E5%86%85-Docker-%E6%8A%A5-%E2%80%9Cfailed-to-create-cgroup%E2%80%9D%EF%BC%9F"><span class="toc-text">Q2：LXC 内 Docker 报 “failed to create cgroup”？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Q3%EF%BC%9ADocker-in-LXC-%E7%A3%81%E7%9B%98%E6%9D%83%E9%99%90%E9%97%AE%E9%A2%98%EF%BC%9F"><span class="toc-text">Q3：Docker in LXC 磁盘权限问题？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Q4%EF%BC%9AOCI-App-Container-%E5%92%8C-Docker-in-LXC-%E6%80%A7%E8%83%BD%E5%AF%B9%E6%AF%94%EF%BC%9F"><span class="toc-text">Q4：OCI App Container 和 Docker in LXC 性能对比？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Q5%EF%BC%9AApplication-Container-%E7%9A%84-Compose-%E6%94%AF%E6%8C%81%E4%BD%95%E6%97%B6%E5%8F%AF%E7%94%A8%EF%BC%9F"><span class="toc-text">Q5：Application Container 的 Compose 支持何时可用？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Q6%EF%BC%9ADocker-in-VM-%E6%80%A7%E8%83%BD%E6%8D%9F%E8%80%97%E5%A4%A7%E5%90%97%EF%BC%9F"><span class="toc-text">Q6：Docker in VM 性能损耗大吗？</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-text">总结</span></a></li></ol>
+      </div>
+      <div class="sidebar-card">
+        <div class="profile-header">
+          <img class="avatar" src="/img/logo.png" alt="avatar">
+          <div class="profile-info">
+            <div class="profile-name">Sam</div>
+            <div class="profile-id">记录技术，分享生活。</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </aside>
+</div>
+<div class="lightbox" id="lightbox">
+  <span class="lightbox-close">&times;</span>
+  <img class="lightbox-img" id="lightboxImg" src="" alt="">
+</div>
+<button class="back-top" id="backTop" aria-label="Back to top">
+  <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 15l-6-6-6 6"/></svg>
+</button></main>
+    <footer class="footer">
+  <div class="footer-inner">
+    <p>&copy; 2026<br>Powered by Sam</p>
+  </div>
+</footer>
+<div class="search-overlay" id="searchOverlay">
+  <div class="search-modal">
+    <input class="search-input" id="searchInput" type="text" placeholder="Search posts..." autocomplete="off">
+    <div class="search-results" id="searchResults"></div>
+  </div>
+</div>
+<script>
+(function() {
+  var t = document.getElementById('themeToggle');
+  if (t) {
+    t.addEventListener('click', function() {
+      var h = document.documentElement;
+      var s = h.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+      h.setAttribute('data-theme', s);
+      try { localStorage.setItem('migo-theme', s); } catch(e) {}
+    });
+    var st = (function(){ try { return localStorage.getItem('migo-theme'); } catch(e) {} })();
+    if (st) document.documentElement.setAttribute('data-theme', st);
+  }
+
+  var m = document.getElementById('menuToggle');
+  var n = document.getElementById('nav');
+  if (m && n) {
+    m.addEventListener('click', function() {
+      n.classList.toggle('nav-open');
+      m.classList.toggle('menu-open');
+      document.body.classList.toggle('body-nav-open');
+    });
+    n.querySelectorAll('a').forEach(function(a) {
+      a.addEventListener('click', function() {
+        n.classList.remove('nav-open');
+        m.classList.remove('menu-open');
+        document.body.classList.remove('body-nav-open');
+      });
+    });
+  }
+
+  var bt = document.getElementById('backTop');
+  if (bt) {
+    window.addEventListener('scroll', function() {
+      bt.classList.toggle('visible', window.scrollY > 400);
+    });
+    bt.addEventListener('click', function() { window.scrollTo({ top: 0, behavior: 'smooth' }); });
+  }
+
+  var pb = document.getElementById('progressBar');
+  if (pb) {
+    window.addEventListener('scroll', function() {
+      var h = document.documentElement;
+      var p = (h.scrollTop || document.body.scrollTop) / ((h.scrollHeight || document.body.scrollHeight) - (h.clientHeight || document.body.clientHeight)) * 100;
+      pb.style.width = Math.min(p, 100) + '%';
+    });
+  }
+
+  document.querySelectorAll('.highlight').forEach(function(block) {
+    var btn = document.createElement('button');
+    btn.className = 'copy-btn';
+    btn.innerHTML = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>';
+    block.appendChild(btn);
+    btn.addEventListener('click', function() {
+      var code = block.querySelector('code');
+      if (!code) return;
+      var text = code.textContent;
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(text).then(function() {
+          btn.classList.add('copied');
+          btn.innerHTML = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>';
+          setTimeout(function() {
+            btn.classList.remove('copied');
+            btn.innerHTML = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>';
+          }, 2000);
+        });
+      }
+    });
+  });
+
+  var lb = document.getElementById('lightbox');
+  var lbImg = document.getElementById('lightboxImg');
+  if (lb && lbImg) {
+    document.getElementById('postContent').addEventListener('click', function(e) {
+      if (e.target.tagName === 'IMG') {
+        lbImg.src = e.target.src;
+        lb.classList.add('open');
+        document.body.style.overflow = 'hidden';
+      }
+    });
+    lb.addEventListener('click', function() {
+      lb.classList.remove('open');
+      document.body.style.overflow = '';
+    });
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape' && lb.classList.contains('open')) {
+        lb.classList.remove('open');
+        document.body.style.overflow = '';
+      }
+    });
+  }
+
+  var so = document.getElementById('searchOverlay');
+  var sb = document.getElementById('searchBtn');
+  var si = document.getElementById('searchInput');
+  var sr = document.getElementById('searchResults');
+  var searchData = [];
+  if (so && sb && si && sr) {
+    sb.addEventListener('click', function() { so.classList.add('open'); si.focus(); si.value = ''; sr.innerHTML = ''; });
+    so.addEventListener('click', function(e) { if (e.target === so) { so.classList.remove('open'); } });
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape' && so.classList.contains('open')) { so.classList.remove('open'); }
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k') { e.preventDefault(); so.classList.add('open'); si.focus(); si.value = ''; sr.innerHTML = ''; }
+    });
+    fetch('/search.xml').then(function(r) { return r.text(); }).then(function(xml) {
+      var parser = new DOMParser();
+      var doc = parser.parseFromString(xml, 'text/xml');
+      doc.querySelectorAll('entry').forEach(function(entry) {
+        searchData.push({
+          title: (entry.querySelector('title') || {}).textContent || '',
+          url: (entry.querySelector('url') || {}).textContent || '',
+          date: (entry.querySelector('published') || {}).textContent || ''
+        });
+      });
+    });
+    si.addEventListener('input', function() {
+      var q = si.value.toLowerCase().trim();
+      if (!q) { sr.innerHTML = ''; return; }
+      var results = searchData.filter(function(item) { return item.title.toLowerCase().indexOf(q) > -1; });
+      if (results.length === 0) {
+        sr.innerHTML = '<div class="search-empty">No results found</div>';
+      } else {
+        sr.innerHTML = results.map(function(item) {
+          return '<a class="search-result-item" href="' + item.url + '">' +
+            '<div class="search-result-title">' + item.title + '</div>' +
+            '<div class="search-result-meta">' + (item.date ? new Date(item.date).toLocaleDateString() : '') + '</div></a>';
+        }).join('');
+      }
+    });
+  }
+
+  var tocLinks = document.querySelectorAll('.toc .toc-link');
+  if (tocLinks.length > 0) {
+    var headings = [];
+    tocLinks.forEach(function(link) {
+      var id = link.getAttribute('href');
+      if (id) {
+        var el = document.getElementById(id.substring(1));
+        if (el) headings.push({ el: el, link: link });
+      }
+    });
+    window.addEventListener('scroll', function() {
+      var scrollY = window.scrollY + 100;
+      var current = null;
+      headings.forEach(function(h) {
+        if (h.el.offsetTop <= scrollY) current = h;
+      });
+      tocLinks.forEach(function(l) { l.classList.remove('active'); });
+      if (current) current.link.classList.add('active');
+    });
+  }
+})();
+</script>
+  </body>
+</html>
