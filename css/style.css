@@ -64,7 +64,7 @@ img { max-width: 100%; height: auto; }
   letter-spacing: 1px;
 }
 
-.nav { display: flex; gap: 2px; margin-left: auto; }
+.nav { display: none; gap: 2px; margin-left: auto; }
 
 .nav a {
   padding: 6px 12px; border-radius: 4px;
@@ -87,7 +87,7 @@ img { max-width: 100%; height: auto; }
 
 /* MOBILE MENU TOGGLE */
 .menu-toggle {
-  display: none; background: none; border: none;
+  display: flex; background: none; border: none;
   width: 30px; height: 30px; cursor: pointer;
   flex-direction: column; align-items: center;
   justify-content: center; gap: 4px;
@@ -103,6 +103,18 @@ img { max-width: 100%; height: auto; }
 .menu-toggle.menu-open span:nth-child(1) { transform: translateY(6px) rotate(45deg); }
 .menu-toggle.menu-open span:nth-child(2) { opacity: 0; }
 .menu-toggle.menu-open span:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }
+
+.nav.nav-open {
+  display: flex; flex-direction: column;
+  position: absolute; top: 100%; left: 0; right: 0;
+  background: var(--bg); border-bottom: 1px solid var(--border);
+  padding: 8px 24px 16px; gap: 2px;
+  z-index: 99; box-shadow: 0 8px 24px rgba(0,0,0,.3);
+  animation: slideDown .2s ease;
+}
+
+.nav.nav-open a { padding: 10px 12px; font-size: .85rem; }
+.body-nav-open { overflow: hidden; }
 
 /* MAIN */
 .main { flex: 1; padding-top: 0; }
@@ -842,20 +854,11 @@ img { max-width: 100%; height: auto; }
   .post-nav { flex-direction: column; }
   .post-nav a { max-width: 100%; }
   .post-nav .next { text-align: left; }
-  .nav { display: none; }
-  .header-inner { padding: 0 16px; }
-  .container { padding: 24px 16px; }
-  .menu-toggle { display: flex; }
-  .nav.nav-open {
-    display: flex; flex-direction: column;
-    position: fixed; top: 56px; left: 0; right: 0;
-    background: var(--bg); border-bottom: 1px solid var(--border);
-    padding: 8px 16px 16px; gap: 2px;
-    z-index: 99; box-shadow: 0 8px 24px rgba(0,0,0,.3);
-    animation: slideDown .2s ease;
-  }
+  .nav.nav-open { padding: 8px 16px 16px; }
   .nav.nav-open a { padding: 10px 12px; font-size: .85rem; }
   .body-nav-open { overflow: hidden; }
+  .header-inner { padding: 0 16px; }
+  .container { padding: 24px 16px; }
   .back-top { right: 16px; bottom: 20px; width: 36px; height: 36px; }
   .search-overlay { padding-top: 60px; }
   .highlight .copy-btn { opacity: 1; }
