@@ -121,7 +121,6 @@ img { max-width: 100%; height: auto; }
   display: flex; gap: 24px;
   max-width: 860px; margin: 0 auto;
   padding: 40px 24px;
-  flex-direction: row-reverse;
 }
 
 .post-main { flex: 1; min-width: 0; }
