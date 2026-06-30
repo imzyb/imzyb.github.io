@@ -912,3 +912,14 @@ img { max-width: 100%; height: auto; }
   .post-sidebar { width: 180px; }
   .post-sidebar .sidebar-sticky { width: 180px; }
 }
+
+/* SYNTAX HIGHLIGHTING */
+.hljs { display: block; overflow-x: auto; padding: 0; }
+.hljs-keyword,.hljs-selector-tag,.hljs-literal,.hljs-section,.hljs-link { color: #ff79c6; }
+.hljs-string,.hljs-title,.hljs-name,.hljs-type,.hljs-attribute,.hljs-symbol,.hljs-bullet,.hljs-addition,.hljs-variable,.hljs-template-tag,.hljs-template-variable { color: #f1fa8c; }
+.hljs-comment,.hljs-quote,.hljs-deletion,.hljs-meta { color: #6272a4; }
+.hljs-number,.hljs-built_in,.hljs-builtin-name,.hljs-selector-class,.hljs-selector-attr,.hljs-selector-pseudo { color: #bd93f9; }
+.hljs-regexp,.hljs-strong { color: #ff5555; }
+.hljs-emphasis { font-style: italic; }
+.hljs-attr { color: #50fa7b; }
+.hljs-params { color: #ffb86c; }
