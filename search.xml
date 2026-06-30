@@ -22,15 +22,15 @@
             
             <tag> PVE </tag>
             
-            <tag> Proxmox </tag>
+            <tag> Docker </tag>
             
             <tag> LXC </tag>
-            
-            <tag> Docker </tag>
             
             <tag> OCI </tag>
             
             <tag> 容器 </tag>
+            
+            <tag> Proxmox </tag>
             
         </tags>
       
@@ -92,11 +92,11 @@
             
             <tag> 虚拟化 </tag>
             
+            <tag> LXC </tag>
+            
             <tag> Proxmox </tag>
             
             <tag> KVM </tag>
-            
-            <tag> LXC </tag>
             
             <tag> 教程 </tag>
             
