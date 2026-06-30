@@ -210,7 +210,10 @@ img { max-width: 100%; height: auto; }
 .sidebar { width: 200px; flex-shrink: 0; }
 
 .sidebar-sticky {
-  position: sticky; top: 80px;
+  position: fixed;
+  top: 80px;
+  right: max(24px, calc((100vw - 860px) / 2 + 24px));
+  width: 200px;
   max-height: calc(100vh - 100px);
   overflow-y: auto;
   scrollbar-width: thin;
