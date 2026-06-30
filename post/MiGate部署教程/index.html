@@ -34,6 +34,9 @@
       <a href="/categories">Categories</a>
       <a href="/tags">Tags</a>
     </nav>
+    <button class="search-btn" id="searchBtn" aria-label="Search">
+      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+    </button>
     <button class="menu-toggle" id="menuToggle" aria-label="Toggle menu">
       <span></span><span></span><span></span>
     </button>
@@ -42,38 +45,43 @@
     </button>
   </div>
 </header>
-    <main class="main"><div class="container container-narrow">
-  <article class="post-full">
-    
-    <header class="post-full-header">
-      <h1 class="post-full-title">MiGate 部署教程 — 轻量级 VPS 代理管理面板</h1>
-      <div class="post-full-meta">
-        <time>6月 29, 2026</time>
-        
-          <span class="post-category">代理与网络</span>
-        
-        
-          <span>1.5k words</span>
-          <span>6 min read</span>
-        
-      </div>
+    <main class="main"><div class="progress-bar" id="progressBar"></div>
+<div class="post-wrap">
+  <div class="post-main">
+    <article class="post-full">
       
-        <div class="post-full-tags">
+      <header class="post-full-header">
+        <h1 class="post-full-title">MiGate 部署教程 — 轻量级 VPS 代理管理面板</h1>
+        <div class="post-full-meta">
+          <time>6月 29, 2026</time>
           
-            <a class="tag" href="/tags/MiGate/">#MiGate</a>
+            <span class="post-updated">Updated 6月 30, 2026</span>
           
-            <a class="tag" href="/tags/VPS/">#VPS</a>
           
-            <a class="tag" href="/tags/Xray/">#Xray</a>
+            <span class="post-category">代理与网络</span>
           
-            <a class="tag" href="/tags/sing-box/">#sing-box</a>
           
-            <a class="tag" href="/tags/%E4%BB%A3%E7%90%86/">#代理</a>
+            <span>1.5k words</span>
+            <span>6 min read</span>
           
         </div>
-      
-    </header>
-    <div class="post-content"><blockquote>
+        
+          <div class="post-full-tags">
+            
+              <a class="tag" href="/tags/MiGate/">#MiGate</a>
+            
+              <a class="tag" href="/tags/VPS/">#VPS</a>
+            
+              <a class="tag" href="/tags/Xray/">#Xray</a>
+            
+              <a class="tag" href="/tags/sing-box/">#sing-box</a>
+            
+              <a class="tag" href="/tags/%E4%BB%A3%E7%90%86/">#代理</a>
+            
+          </div>
+        
+      </header>
+      <div class="post-content" id="postContent"><blockquote>
 <p><strong>MiGate</strong> 是一款 Go 单二进制轻量级 VPS 面板，使用本地 SQLite 数据库和嵌入式 React WebUI，管理 Xray 和 sing-box 的入站节点、客户端、共享出站配置、路由规则以及核心配置的生成与应用。</p>
 </blockquote>
 <p><strong>版本：</strong> v1.5.4 | <strong>仓库：</strong> <a target="_blank" rel="noopener" href="https://github.com/imzyb/MiGate">github.com&#x2F;imzyb&#x2F;MiGate</a></p>
@@ -143,9 +151,9 @@
 <li><strong>架构：</strong> amd64 &#x2F; arm64</li>
 </ul>
 <h3 id="安装命令"><a href="#安装命令" class="headerlink" title="安装命令"></a>安装命令</h3><p>在 VPS 上以 root 用户执行：</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">bash &lt;(curl -Ls https://raw.githubusercontent.com/imzyb/MiGate/main/packaging/install.sh)</span><br></pre></td></tr></table></figure>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">bash &lt;(curl -Ls https://raw.githubusercontent.com/imzyb/MiGate/main/packaging/install.sh)</span><br></pre></td></tr></table></figure>
 
-<h3 id="指定版本安装"><a href="#指定版本安装" class="headerlink" title="指定版本安装"></a>指定版本安装</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">MIGATE_VERSION=v1.0.21 bash &lt;(curl -Ls https://raw.githubusercontent.com/imzyb/MiGate/main/packaging/install.sh)</span><br></pre></td></tr></table></figure>
+<h3 id="指定版本安装"><a href="#指定版本安装" class="headerlink" title="指定版本安装"></a>指定版本安装</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">MIGATE_VERSION=v1.0.21 bash &lt;(curl -Ls https://raw.githubusercontent.com/imzyb/MiGate/main/packaging/install.sh)</span><br></pre></td></tr></table></figure>
 
 <h3 id="安装流程"><a href="#安装流程" class="headerlink" title="安装流程"></a>安装流程</h3><p>首次安装时，安装程序会依次进行：</p>
 <ol>
@@ -187,17 +195,17 @@
 <td>是</td>
 </tr>
 </tbody></table>
-<h3 id="非交互式安装"><a href="#非交互式安装" class="headerlink" title="非交互式安装"></a>非交互式安装</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 安装或升级，保留现有配置</span></span><br><span class="line">bash &lt;(curl -Ls https://raw.githubusercontent.com/imzyb/MiGate/main/packaging/install.sh) --install --<span class="built_in">yes</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 预览安装操作（不实际执行）</span></span><br><span class="line">bash &lt;(curl -Ls https://raw.githubusercontent.com/imzyb/MiGate/main/packaging/install.sh) --install --<span class="built_in">yes</span> --dry-run</span><br></pre></td></tr></table></figure>
+<h3 id="非交互式安装"><a href="#非交互式安装" class="headerlink" title="非交互式安装"></a>非交互式安装</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 安装或升级，保留现有配置</span></span><br><span class="line">bash &lt;(curl -Ls https://raw.githubusercontent.com/imzyb/MiGate/main/packaging/install.sh) --install --<span class="built_in">yes</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 预览安装操作（不实际执行）</span></span><br><span class="line">bash &lt;(curl -Ls https://raw.githubusercontent.com/imzyb/MiGate/main/packaging/install.sh) --install --<span class="built_in">yes</span> --dry-run</span><br></pre></td></tr></table></figure>
 
 <h3 id="访问面板"><a href="#访问面板" class="headerlink" title="访问面板"></a>访问面板</h3><p>安装完成后，通过浏览器访问：</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">http://&lt;你的VPS_IP&gt;:9999/panel</span><br></pre></td></tr></table></figure>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">http://&lt;你的VPS_IP&gt;:9999/panel</span><br></pre></td></tr></table></figure>
 
 <blockquote>
 <p>面板服务默认绑定 <code>0.0.0.0</code>，方便直接访问。生产环境建议使用 Nginx&#x2F;Caddy 反向代理并开启 HTTPS。</p>
 </blockquote>
 <hr>
 <h2 id="面板配置"><a href="#面板配置" class="headerlink" title="面板配置"></a>面板配置</h2><h3 id="基本配置"><a href="#基本配置" class="headerlink" title="基本配置"></a>基本配置</h3><p>配置文件位于 <code>/etc/migate/panel.json</code>：</p>
-<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;port&quot;</span><span class="punctuation">:</span> <span class="number">9999</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;username&quot;</span><span class="punctuation">:</span> <span class="string">&quot;admin&quot;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;web_path&quot;</span><span class="punctuation">:</span> <span class="string">&quot;/panel&quot;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;public_host&quot;</span><span class="punctuation">:</span> <span class="string">&quot;your-domain.com&quot;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;trust_proxy&quot;</span><span class="punctuation">:</span> <span class="literal"><span class="keyword">false</span></span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+<figure class="highlight json"><table><tr><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;port&quot;</span><span class="punctuation">:</span> <span class="number">9999</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;username&quot;</span><span class="punctuation">:</span> <span class="string">&quot;admin&quot;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;web_path&quot;</span><span class="punctuation">:</span> <span class="string">&quot;/panel&quot;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;public_host&quot;</span><span class="punctuation">:</span> <span class="string">&quot;your-domain.com&quot;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;trust_proxy&quot;</span><span class="punctuation">:</span> <span class="literal"><span class="keyword">false</span></span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
 
 <table>
 <thead>
@@ -261,11 +269,11 @@
 </tbody></table>
 <hr>
 <h2 id="日常管理"><a href="#日常管理" class="headerlink" title="日常管理"></a>日常管理</h2><h3 id="常用命令"><a href="#常用命令" class="headerlink" title="常用命令"></a>常用命令</h3><p>MiGate 提供了 <code>mg</code> 命令方便日常操作：</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 查看面板状态</span></span><br><span class="line">mg status</span><br><span class="line">mg doctor</span><br><span class="line">mg info</span><br><span class="line">mg ports</span><br><span class="line"></span><br><span class="line"><span class="comment"># 重启面板</span></span><br><span class="line">mg restart</span><br><span class="line">mg restart all</span><br><span class="line">systemctl restart migate</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看日志</span></span><br><span class="line">mg logs -f</span><br><span class="line">journalctl -u migate -f</span><br><span class="line"></span><br><span class="line"><span class="comment"># 更新面板</span></span><br><span class="line">mg update</span><br><span class="line">mg update --check</span><br><span class="line"></span><br><span class="line"><span class="comment"># 备份与恢复</span></span><br><span class="line">mg backup</span><br><span class="line">mg restore /var/lib/migate/backups/migate-backup-20260629-120000.tar.gz</span><br></pre></td></tr></table></figure>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 查看面板状态</span></span><br><span class="line">mg status</span><br><span class="line">mg doctor</span><br><span class="line">mg info</span><br><span class="line">mg ports</span><br><span class="line"></span><br><span class="line"><span class="comment"># 重启面板</span></span><br><span class="line">mg restart</span><br><span class="line">mg restart all</span><br><span class="line">systemctl restart migate</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看日志</span></span><br><span class="line">mg logs -f</span><br><span class="line">journalctl -u migate -f</span><br><span class="line"></span><br><span class="line"><span class="comment"># 更新面板</span></span><br><span class="line">mg update</span><br><span class="line">mg update --check</span><br><span class="line"></span><br><span class="line"><span class="comment"># 备份与恢复</span></span><br><span class="line">mg backup</span><br><span class="line">mg restore /var/lib/migate/backups/migate-backup-20260629-120000.tar.gz</span><br></pre></td></tr></table></figure>
 
-<h3 id="核心管理"><a href="#核心管理" class="headerlink" title="核心管理"></a>核心管理</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 安装或修复运行核心</span></span><br><span class="line">migate-install --install-xray --<span class="built_in">yes</span></span><br><span class="line">migate-install --install-singbox --<span class="built_in">yes</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 系统服务</span></span><br><span class="line">systemctl status migate</span><br><span class="line">systemctl status migate-xray</span><br><span class="line">systemctl status migate-sing-box</span><br></pre></td></tr></table></figure>
+<h3 id="核心管理"><a href="#核心管理" class="headerlink" title="核心管理"></a>核心管理</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 安装或修复运行核心</span></span><br><span class="line">migate-install --install-xray --<span class="built_in">yes</span></span><br><span class="line">migate-install --install-singbox --<span class="built_in">yes</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 系统服务</span></span><br><span class="line">systemctl status migate</span><br><span class="line">systemctl status migate-xray</span><br><span class="line">systemctl status migate-sing-box</span><br></pre></td></tr></table></figure>
 
-<h3 id="卸载"><a href="#卸载" class="headerlink" title="卸载"></a>卸载</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 仅卸载面板（保留核心和配置）</span></span><br><span class="line">migate-install --uninstall --<span class="built_in">yes</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 卸载面板及核心（保留配置和数据）</span></span><br><span class="line">migate-install --uninstall -- --with-cores --<span class="built_in">yes</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 完全卸载（清除所有数据和配置）</span></span><br><span class="line">migate-install --uninstall -- --purge --<span class="built_in">yes</span></span><br></pre></td></tr></table></figure>
+<h3 id="卸载"><a href="#卸载" class="headerlink" title="卸载"></a>卸载</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 仅卸载面板（保留核心和配置）</span></span><br><span class="line">migate-install --uninstall --<span class="built_in">yes</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 卸载面板及核心（保留配置和数据）</span></span><br><span class="line">migate-install --uninstall -- --with-cores --<span class="built_in">yes</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 完全卸载（清除所有数据和配置）</span></span><br><span class="line">migate-install --uninstall -- --purge --<span class="built_in">yes</span></span><br></pre></td></tr></table></figure>
 
 <hr>
 <h2 id="安全建议"><a href="#安全建议" class="headerlink" title="安全建议"></a>安全建议</h2><ol>
@@ -277,9 +285,9 @@
 <li><strong>定期备份</strong> — 使用 <code>mg backup</code> 定期备份数据库和配置</li>
 </ol>
 <hr>
-<h2 id="反向代理配置示例"><a href="#反向代理配置示例" class="headerlink" title="反向代理配置示例"></a>反向代理配置示例</h2><h3 id="Nginx"><a href="#Nginx" class="headerlink" title="Nginx"></a>Nginx</h3><figure class="highlight nginx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="section">server</span> &#123;</span><br><span class="line">    <span class="attribute">listen</span> <span class="number">443</span> ssl;</span><br><span class="line">    <span class="attribute">server_name</span> your-domain.com;</span><br><span class="line"></span><br><span class="line">    <span class="attribute">ssl_certificate</span> /path/to/cert.pem;</span><br><span class="line">    <span class="attribute">ssl_certificate_key</span> /path/to/key.pem;</span><br><span class="line"></span><br><span class="line">    <span class="section">location</span> /panel &#123;</span><br><span class="line">        <span class="attribute">proxy_pass</span> http://127.0.0.1:9999;</span><br><span class="line">        <span class="attribute">proxy_set_header</span> Host <span class="variable">$host</span>;</span><br><span class="line">        <span class="attribute">proxy_set_header</span> X-Real-IP <span class="variable">$remote_addr</span>;</span><br><span class="line">        <span class="attribute">proxy_set_header</span> X-Forwarded-For <span class="variable">$proxy_add_x_forwarded_for</span>;</span><br><span class="line">        <span class="attribute">proxy_set_header</span> X-Forwarded-Proto <span class="variable">$scheme</span>;</span><br><span class="line">        <span class="attribute">proxy_http_version</span> <span class="number">1</span>.<span class="number">1</span>;</span><br><span class="line">        <span class="attribute">proxy_set_header</span> Upgrade <span class="variable">$http_upgrade</span>;</span><br><span class="line">        <span class="attribute">proxy_set_header</span> Connection <span class="string">&quot;upgrade&quot;</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="反向代理配置示例"><a href="#反向代理配置示例" class="headerlink" title="反向代理配置示例"></a>反向代理配置示例</h2><h3 id="Nginx"><a href="#Nginx" class="headerlink" title="Nginx"></a>Nginx</h3><figure class="highlight nginx"><table><tr><td class="code"><pre><span class="line"><span class="section">server</span> &#123;</span><br><span class="line">    <span class="attribute">listen</span> <span class="number">443</span> ssl;</span><br><span class="line">    <span class="attribute">server_name</span> your-domain.com;</span><br><span class="line"></span><br><span class="line">    <span class="attribute">ssl_certificate</span> /path/to/cert.pem;</span><br><span class="line">    <span class="attribute">ssl_certificate_key</span> /path/to/key.pem;</span><br><span class="line"></span><br><span class="line">    <span class="section">location</span> /panel &#123;</span><br><span class="line">        <span class="attribute">proxy_pass</span> http://127.0.0.1:9999;</span><br><span class="line">        <span class="attribute">proxy_set_header</span> Host <span class="variable">$host</span>;</span><br><span class="line">        <span class="attribute">proxy_set_header</span> X-Real-IP <span class="variable">$remote_addr</span>;</span><br><span class="line">        <span class="attribute">proxy_set_header</span> X-Forwarded-For <span class="variable">$proxy_add_x_forwarded_for</span>;</span><br><span class="line">        <span class="attribute">proxy_set_header</span> X-Forwarded-Proto <span class="variable">$scheme</span>;</span><br><span class="line">        <span class="attribute">proxy_http_version</span> <span class="number">1</span>.<span class="number">1</span>;</span><br><span class="line">        <span class="attribute">proxy_set_header</span> Upgrade <span class="variable">$http_upgrade</span>;</span><br><span class="line">        <span class="attribute">proxy_set_header</span> Connection <span class="string">&quot;upgrade&quot;</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<h3 id="Caddy"><a href="#Caddy" class="headerlink" title="Caddy"></a>Caddy</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">your-domain.com &#123;</span><br><span class="line">    reverse_proxy /panel* 127.0.0.1:9999</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="Caddy"><a href="#Caddy" class="headerlink" title="Caddy"></a>Caddy</h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">your-domain.com &#123;</span><br><span class="line">    reverse_proxy /panel* 127.0.0.1:9999</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 <hr>
 <h2 id="常见问题"><a href="#常见问题" class="headerlink" title="常见问题"></a>常见问题</h2><h3 id="Q1：安装后无法访问面板？"><a href="#Q1：安装后无法访问面板？" class="headerlink" title="Q1：安装后无法访问面板？"></a>Q1：安装后无法访问面板？</h3><ul>
@@ -288,9 +296,9 @@
 <li>检查面板绑定地址：<code>ss -tlnp | grep 9999</code></li>
 </ul>
 <h3 id="Q2：如何修改面板端口？"><a href="#Q2：如何修改面板端口？" class="headerlink" title="Q2：如何修改面板端口？"></a>Q2：如何修改面板端口？</h3><p>编辑 <code>/etc/migate/panel.json</code> 修改 <code>port</code> 值，然后执行 <code>mg restart</code>。</p>
-<h3 id="Q3：忘记管理员密码？"><a href="#Q3：忘记管理员密码？" class="headerlink" title="Q3：忘记管理员密码？"></a>Q3：忘记管理员密码？</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 在 panel.json 中修改 password 字段</span></span><br><span class="line">nano /etc/migate/panel.json</span><br><span class="line"></span><br><span class="line"><span class="comment"># 重启面板</span></span><br><span class="line">systemctl restart migate</span><br></pre></td></tr></table></figure>
+<h3 id="Q3：忘记管理员密码？"><a href="#Q3：忘记管理员密码？" class="headerlink" title="Q3：忘记管理员密码？"></a>Q3：忘记管理员密码？</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 在 panel.json 中修改 password 字段</span></span><br><span class="line">nano /etc/migate/panel.json</span><br><span class="line"></span><br><span class="line"><span class="comment"># 重启面板</span></span><br><span class="line">systemctl restart migate</span><br></pre></td></tr></table></figure>
 
-<h3 id="Q4：如何升级-MiGate？"><a href="#Q4：如何升级-MiGate？" class="headerlink" title="Q4：如何升级 MiGate？"></a>Q4：如何升级 MiGate？</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 在线升级</span></span><br><span class="line">mg update</span><br><span class="line"></span><br><span class="line"><span class="comment"># 或重新执行安装脚本</span></span><br><span class="line">bash &lt;(curl -Ls https://raw.githubusercontent.com/imzyb/MiGate/main/packaging/install.sh) --install --<span class="built_in">yes</span></span><br></pre></td></tr></table></figure>
+<h3 id="Q4：如何升级-MiGate？"><a href="#Q4：如何升级-MiGate？" class="headerlink" title="Q4：如何升级 MiGate？"></a>Q4：如何升级 MiGate？</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 在线升级</span></span><br><span class="line">mg update</span><br><span class="line"></span><br><span class="line"><span class="comment"># 或重新执行安装脚本</span></span><br><span class="line">bash &lt;(curl -Ls https://raw.githubusercontent.com/imzyb/MiGate/main/packaging/install.sh) --install --<span class="built_in">yes</span></span><br></pre></td></tr></table></figure>
 
 <h3 id="Q5：订阅链接无法使用？"><a href="#Q5：订阅链接无法使用？" class="headerlink" title="Q5：订阅链接无法使用？"></a>Q5：订阅链接无法使用？</h3><ul>
 <li>确认 <code>public_host</code> 已设置为正确的域名或 IP</li>
@@ -299,31 +307,86 @@
 </ul>
 <hr>
 <h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>MiGate 的部署流程可以概括为：</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">执行一键安装 → 配置面板 → 添加入站节点 → 配置客户端 → 生成订阅链接</span><br></pre></td></tr></table></figure>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">执行一键安装 → 配置面板 → 添加入站节点 → 配置客户端 → 生成订阅链接</span><br></pre></td></tr></table></figure>
 
 <p>整个安装过程仅需一条命令，几分钟内即可完成。部署完成后，你就能通过 WebUI 直观地管理你的 VPS 代理节点、客户端和路由规则。</p>
 <p>如果你在部署过程中遇到任何问题，欢迎在项目 <a target="_blank" rel="noopener" href="https://github.com/imzyb/MiGate/issues">GitHub Issues</a> 中提出。</p>
 <hr>
 <p><em>本文档最后更新于 2026 年 6 月，对应 MiGate v1.5.4 版本。</em></p>
 </div>
+      
+        <nav class="post-nav">
+          
+          
+            <a class="next" href="/post/MiSub%E9%83%A8%E7%BD%B2%E6%95%99%E7%A8%8B/">
+              <span class="nav-label">Next →</span>
+              <span class="nav-title">MiSub 部署教程 — 轻量级代理订阅管理面板</span>
+            </a>
+          
+        </nav>
+      
+    </article>
     
-      <nav class="post-nav">
+      
+      
+      
+      
         
-        
-          <a class="next" href="/post/MiSub%E9%83%A8%E7%BD%B2%E6%95%99%E7%A8%8B/">
-            <span class="nav-label">Next →</span>
-            <span class="nav-title">MiSub 部署教程 — 轻量级代理订阅管理面板</span>
-          </a>
-        
-      </nav>
+        <div class="related-posts">
+          <h3 class="related-title">Related Posts</h3>
+          <div class="related-list">
+            
+              <a class="related-item" href="/post/%E7%94%A8Mihomo%E6%89%93%E9%80%A0%E6%9C%80%E5%BC%BA%E4%BB%A3%E7%90%86%E6%9C%BA/">
+                <span class="related-item-title">在 Linux 上用 Mihomo 打造透明代理网关</span>
+                <span class="related-item-date">5月 22, 2025</span>
+              </a>
+            
+              <a class="related-item" href="/post/%E5%B8%B8%E7%94%A8VPS%E8%84%9A%E6%9C%AC/">
+                <span class="related-item-title">常用 VPS 脚本合集</span>
+                <span class="related-item-date">10月 27, 2024</span>
+              </a>
+            
+          </div>
+        </div>
+      
     
-  </article>
-</div></main>
+  </div>
+  <aside class="sidebar post-sidebar">
+    <div class="sidebar-sticky">
+      <div class="sidebar-card">
+        <div class="profile-section-title">目录</div>
+        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%9B%AE%E5%BD%95"><span class="toc-text">目录</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8A%9F%E8%83%BD%E6%A6%82%E8%A7%88"><span class="toc-text">功能概览</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E9%94%AE%E5%AE%89%E8%A3%85"><span class="toc-text">一键安装</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%8E%AF%E5%A2%83%E8%A6%81%E6%B1%82"><span class="toc-text">环境要求</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AE%89%E8%A3%85%E5%91%BD%E4%BB%A4"><span class="toc-text">安装命令</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%8C%87%E5%AE%9A%E7%89%88%E6%9C%AC%E5%AE%89%E8%A3%85"><span class="toc-text">指定版本安装</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AE%89%E8%A3%85%E6%B5%81%E7%A8%8B"><span class="toc-text">安装流程</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%9D%9E%E4%BA%A4%E4%BA%92%E5%BC%8F%E5%AE%89%E8%A3%85"><span class="toc-text">非交互式安装</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%AE%BF%E9%97%AE%E9%9D%A2%E6%9D%BF"><span class="toc-text">访问面板</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%9D%A2%E6%9D%BF%E9%85%8D%E7%BD%AE"><span class="toc-text">面板配置</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%9F%BA%E6%9C%AC%E9%85%8D%E7%BD%AE"><span class="toc-text">基本配置</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%A0%B8%E5%BF%83%E9%85%8D%E7%BD%AE%E8%B7%AF%E5%BE%84"><span class="toc-text">核心配置路径</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%97%A5%E5%B8%B8%E7%AE%A1%E7%90%86"><span class="toc-text">日常管理</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%B8%B8%E7%94%A8%E5%91%BD%E4%BB%A4"><span class="toc-text">常用命令</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%A0%B8%E5%BF%83%E7%AE%A1%E7%90%86"><span class="toc-text">核心管理</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%8D%B8%E8%BD%BD"><span class="toc-text">卸载</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AE%89%E5%85%A8%E5%BB%BA%E8%AE%AE"><span class="toc-text">安全建议</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%8D%E5%90%91%E4%BB%A3%E7%90%86%E9%85%8D%E7%BD%AE%E7%A4%BA%E4%BE%8B"><span class="toc-text">反向代理配置示例</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Nginx"><span class="toc-text">Nginx</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Caddy"><span class="toc-text">Caddy</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98"><span class="toc-text">常见问题</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Q1%EF%BC%9A%E5%AE%89%E8%A3%85%E5%90%8E%E6%97%A0%E6%B3%95%E8%AE%BF%E9%97%AE%E9%9D%A2%E6%9D%BF%EF%BC%9F"><span class="toc-text">Q1：安装后无法访问面板？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Q2%EF%BC%9A%E5%A6%82%E4%BD%95%E4%BF%AE%E6%94%B9%E9%9D%A2%E6%9D%BF%E7%AB%AF%E5%8F%A3%EF%BC%9F"><span class="toc-text">Q2：如何修改面板端口？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Q3%EF%BC%9A%E5%BF%98%E8%AE%B0%E7%AE%A1%E7%90%86%E5%91%98%E5%AF%86%E7%A0%81%EF%BC%9F"><span class="toc-text">Q3：忘记管理员密码？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Q4%EF%BC%9A%E5%A6%82%E4%BD%95%E5%8D%87%E7%BA%A7-MiGate%EF%BC%9F"><span class="toc-text">Q4：如何升级 MiGate？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Q5%EF%BC%9A%E8%AE%A2%E9%98%85%E9%93%BE%E6%8E%A5%E6%97%A0%E6%B3%95%E4%BD%BF%E7%94%A8%EF%BC%9F"><span class="toc-text">Q5：订阅链接无法使用？</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-text">总结</span></a></li></ol>
+      </div>
+      <div class="sidebar-card">
+        <div class="profile-header">
+          <img class="avatar" src="/img/logo.png" alt="avatar">
+          <div class="profile-info">
+            <div class="profile-name">Sam</div>
+            <div class="profile-id">记录技术，分享生活。</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </aside>
+</div>
+<div class="lightbox" id="lightbox">
+  <span class="lightbox-close">&times;</span>
+  <img class="lightbox-img" id="lightboxImg" src="" alt="">
+</div>
+<button class="back-top" id="backTop" aria-label="Back to top">
+  <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 15l-6-6-6 6"/></svg>
+</button></main>
     <footer class="footer">
   <div class="footer-inner">
-    <p>© 2026 Sam<br>Powered by <a href="https://hexo.io" target="_blank" rel="noopener">Hexo</a> &amp; <a href="https://github.com/imzyb/migo" target="_blank" rel="noopener">MiGo</a></p>
+    <p>&copy; 2026 Sam<br>Powered by <a href="https://hexo.io" target="_blank" rel="noopener">Hexo</a> &amp; <a href="https://github.com/imzyb/migo" target="_blank" rel="noopener">MiGo</a></p>
   </div>
 </footer>
+<div class="search-overlay" id="searchOverlay">
+  <div class="search-modal">
+    <input class="search-input" id="searchInput" type="text" placeholder="Search posts..." autocomplete="off">
+    <div class="search-results" id="searchResults"></div>
+  </div>
+</div>
 <script>
 (function() {
   var t = document.getElementById('themeToggle');
@@ -337,6 +400,7 @@
     var st = (function(){ try { return localStorage.getItem('migo-theme'); } catch(e) {} })();
     if (st) document.documentElement.setAttribute('data-theme', st);
   }
+
   var m = document.getElementById('menuToggle');
   var n = document.getElementById('nav');
   if (m && n) {
@@ -351,6 +415,127 @@
         m.classList.remove('menu-open');
         document.body.classList.remove('body-nav-open');
       });
+    });
+  }
+
+  var bt = document.getElementById('backTop');
+  if (bt) {
+    window.addEventListener('scroll', function() {
+      bt.classList.toggle('visible', window.scrollY > 400);
+    });
+    bt.addEventListener('click', function() { window.scrollTo({ top: 0, behavior: 'smooth' }); });
+  }
+
+  var pb = document.getElementById('progressBar');
+  if (pb) {
+    window.addEventListener('scroll', function() {
+      var h = document.documentElement;
+      var p = (h.scrollTop || document.body.scrollTop) / ((h.scrollHeight || document.body.scrollHeight) - (h.clientHeight || document.body.clientHeight)) * 100;
+      pb.style.width = Math.min(p, 100) + '%';
+    });
+  }
+
+  document.querySelectorAll('.highlight').forEach(function(block) {
+    var btn = document.createElement('button');
+    btn.className = 'copy-btn';
+    btn.innerHTML = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>';
+    block.appendChild(btn);
+    btn.addEventListener('click', function() {
+      var code = block.querySelector('code');
+      if (!code) return;
+      var text = code.textContent;
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(text).then(function() {
+          btn.classList.add('copied');
+          btn.innerHTML = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>';
+          setTimeout(function() {
+            btn.classList.remove('copied');
+            btn.innerHTML = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>';
+          }, 2000);
+        });
+      }
+    });
+  });
+
+  var lb = document.getElementById('lightbox');
+  var lbImg = document.getElementById('lightboxImg');
+  if (lb && lbImg) {
+    document.getElementById('postContent').addEventListener('click', function(e) {
+      if (e.target.tagName === 'IMG') {
+        lbImg.src = e.target.src;
+        lb.classList.add('open');
+        document.body.style.overflow = 'hidden';
+      }
+    });
+    lb.addEventListener('click', function() {
+      lb.classList.remove('open');
+      document.body.style.overflow = '';
+    });
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape' && lb.classList.contains('open')) {
+        lb.classList.remove('open');
+        document.body.style.overflow = '';
+      }
+    });
+  }
+
+  var so = document.getElementById('searchOverlay');
+  var sb = document.getElementById('searchBtn');
+  var si = document.getElementById('searchInput');
+  var sr = document.getElementById('searchResults');
+  var searchData = [];
+  if (so && sb && si && sr) {
+    sb.addEventListener('click', function() { so.classList.add('open'); si.focus(); si.value = ''; sr.innerHTML = ''; });
+    so.addEventListener('click', function(e) { if (e.target === so) { so.classList.remove('open'); } });
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape' && so.classList.contains('open')) { so.classList.remove('open'); }
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k') { e.preventDefault(); so.classList.add('open'); si.focus(); si.value = ''; sr.innerHTML = ''; }
+    });
+    fetch('/search.xml').then(function(r) { return r.text(); }).then(function(xml) {
+      var parser = new DOMParser();
+      var doc = parser.parseFromString(xml, 'text/xml');
+      doc.querySelectorAll('entry').forEach(function(entry) {
+        searchData.push({
+          title: (entry.querySelector('title') || {}).textContent || '',
+          url: (entry.querySelector('url') || {}).textContent || '',
+          date: (entry.querySelector('published') || {}).textContent || ''
+        });
+      });
+    });
+    si.addEventListener('input', function() {
+      var q = si.value.toLowerCase().trim();
+      if (!q) { sr.innerHTML = ''; return; }
+      var results = searchData.filter(function(item) { return item.title.toLowerCase().indexOf(q) > -1; });
+      if (results.length === 0) {
+        sr.innerHTML = '<div class="search-empty">No results found</div>';
+      } else {
+        sr.innerHTML = results.map(function(item) {
+          return '<a class="search-result-item" href="' + item.url + '">' +
+            '<div class="search-result-title">' + item.title + '</div>' +
+            '<div class="search-result-meta">' + (item.date ? new Date(item.date).toLocaleDateString() : '') + '</div></a>';
+        }).join('');
+      }
+    });
+  }
+
+  var tocLinks = document.querySelectorAll('.toc .toc-link');
+  if (tocLinks.length > 0) {
+    var headings = [];
+    tocLinks.forEach(function(link) {
+      var id = link.getAttribute('href');
+      if (id) {
+        var el = document.getElementById(id.substring(1));
+        if (el) headings.push({ el: el, link: link });
+      }
+    });
+    window.addEventListener('scroll', function() {
+      var scrollY = window.scrollY + 100;
+      var current = null;
+      headings.forEach(function(h) {
+        if (h.el.offsetTop <= scrollY) current = h;
+      });
+      tocLinks.forEach(function(l) { l.classList.remove('active'); });
+      if (current) current.link.classList.add('active');
     });
   }
 })();

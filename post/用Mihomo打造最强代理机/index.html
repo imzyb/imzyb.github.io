@@ -33,6 +33,9 @@
       <a href="/categories">Categories</a>
       <a href="/tags">Tags</a>
     </nav>
+    <button class="search-btn" id="searchBtn" aria-label="Search">
+      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+    </button>
     <button class="menu-toggle" id="menuToggle" aria-label="Toggle menu">
       <span></span><span></span><span></span>
     </button>
@@ -41,43 +44,48 @@
     </button>
   </div>
 </header>
-    <main class="main"><div class="container container-narrow">
-  <article class="post-full">
-    
-    <header class="post-full-header">
-      <h1 class="post-full-title">在 Linux 上用 Mihomo 打造透明代理网关</h1>
-      <div class="post-full-meta">
-        <time>5月 22, 2025</time>
-        
-          <span class="post-category">代理与网络</span>
-        
-        
-          <span>663 words</span>
-          <span>2 min read</span>
-        
-      </div>
+    <main class="main"><div class="progress-bar" id="progressBar"></div>
+<div class="post-wrap">
+  <div class="post-main">
+    <article class="post-full">
       
-        <div class="post-full-tags">
+      <header class="post-full-header">
+        <h1 class="post-full-title">在 Linux 上用 Mihomo 打造透明代理网关</h1>
+        <div class="post-full-meta">
+          <time>5月 22, 2025</time>
           
-            <a class="tag" href="/tags/%E4%BB%A3%E7%90%86/">#代理</a>
+            <span class="post-updated">Updated 6月 30, 2026</span>
           
-            <a class="tag" href="/tags/Linux/">#Linux</a>
           
-            <a class="tag" href="/tags/Mihomo/">#Mihomo</a>
+            <span class="post-category">代理与网络</span>
           
-            <a class="tag" href="/tags/Docker/">#Docker</a>
+          
+            <span>662 words</span>
+            <span>2 min read</span>
           
         </div>
-      
-    </header>
-    <div class="post-content"><blockquote>
+        
+          <div class="post-full-tags">
+            
+              <a class="tag" href="/tags/%E4%BB%A3%E7%90%86/">#代理</a>
+            
+              <a class="tag" href="/tags/Linux/">#Linux</a>
+            
+              <a class="tag" href="/tags/Mihomo/">#Mihomo</a>
+            
+              <a class="tag" href="/tags/Docker/">#Docker</a>
+            
+          </div>
+        
+      </header>
+      <div class="post-content" id="postContent"><blockquote>
 <p>本文介绍如何在 Debian 虚拟机上使用 Docker 和 macvlan 网络部署 <strong>Mihomo</strong>（原 Clash Meta）透明代理网关，让局域网内所有设备无需任何配置即可自动使用代理。</p>
 </blockquote>
 <h2 id="环境准备"><a href="#环境准备" class="headerlink" title="环境准备"></a>环境准备</h2><h3 id="创建-Debian-虚拟机"><a href="#创建-Debian-虚拟机" class="headerlink" title="创建 Debian 虚拟机"></a>创建 Debian 虚拟机</h3><p>在 Proxmox VE 上一键创建 Debian 虚拟机：</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">bash -c <span class="string">&quot;<span class="subst">$(curl -fsSL https://raw.githubusercontent.com/community-scripts/ProxmoxVE/main/vm/debian-vm.sh)</span>&quot;</span></span><br></pre></td></tr></table></figure>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">bash -c <span class="string">&quot;<span class="subst">$(curl -fsSL https://raw.githubusercontent.com/community-scripts/ProxmoxVE/main/vm/debian-vm.sh)</span>&quot;</span></span><br></pre></td></tr></table></figure>
 
 <p>推荐使用 Debian，因为它轻量、稳定、易用。</p>
-<h3 id="启用-SSH-远程管理"><a href="#启用-SSH-远程管理" class="headerlink" title="启用 SSH 远程管理"></a>启用 SSH 远程管理</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 安装 SSH 服务</span></span><br><span class="line">apt install -y openssh-server</span><br><span class="line">systemctl <span class="built_in">enable</span> ssh</span><br><span class="line">systemctl start ssh</span><br><span class="line"></span><br><span class="line"><span class="comment"># 安装编辑器</span></span><br><span class="line">apt install -y vim</span><br><span class="line"></span><br><span class="line"><span class="comment"># 修改 SSH 配置</span></span><br><span class="line">vim /etc/ssh/sshd_config</span><br></pre></td></tr></table></figure>
+<h3 id="启用-SSH-远程管理"><a href="#启用-SSH-远程管理" class="headerlink" title="启用 SSH 远程管理"></a>启用 SSH 远程管理</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 安装 SSH 服务</span></span><br><span class="line">apt install -y openssh-server</span><br><span class="line">systemctl <span class="built_in">enable</span> ssh</span><br><span class="line">systemctl start ssh</span><br><span class="line"></span><br><span class="line"><span class="comment"># 安装编辑器</span></span><br><span class="line">apt install -y vim</span><br><span class="line"></span><br><span class="line"><span class="comment"># 修改 SSH 配置</span></span><br><span class="line">vim /etc/ssh/sshd_config</span><br></pre></td></tr></table></figure>
 
 <p>修改以下参数：</p>
 <ul>
@@ -85,20 +93,20 @@
 <li><code>PasswordAuthentication</code> → <code>yes</code></li>
 </ul>
 <p>重启 SSH 服务并设置 root 密码：</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">systemctl restart ssh</span><br><span class="line">passwd root</span><br></pre></td></tr></table></figure>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">systemctl restart ssh</span><br><span class="line">passwd root</span><br></pre></td></tr></table></figure>
 
-<h3 id="安装-Docker"><a href="#安装-Docker" class="headerlink" title="安装 Docker"></a>安装 Docker</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">apt update &amp;&amp; apt install -y docker.io</span><br><span class="line">systemctl <span class="built_in">enable</span> docker</span><br></pre></td></tr></table></figure>
+<h3 id="安装-Docker"><a href="#安装-Docker" class="headerlink" title="安装 Docker"></a>安装 Docker</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">apt update &amp;&amp; apt install -y docker.io</span><br><span class="line">systemctl <span class="built_in">enable</span> docker</span><br></pre></td></tr></table></figure>
 
 <hr>
-<h2 id="网络配置"><a href="#网络配置" class="headerlink" title="网络配置"></a>网络配置</h2><h3 id="查看网卡信息"><a href="#查看网卡信息" class="headerlink" title="查看网卡信息"></a>查看网卡信息</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ip addr</span><br></pre></td></tr></table></figure>
+<h2 id="网络配置"><a href="#网络配置" class="headerlink" title="网络配置"></a>网络配置</h2><h3 id="查看网卡信息"><a href="#查看网卡信息" class="headerlink" title="查看网卡信息"></a>查看网卡信息</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">ip addr</span><br></pre></td></tr></table></figure>
 
 <p>记录主网卡名称（如 <code>enp0s18</code>）。</p>
-<h3 id="设置网卡混杂模式"><a href="#设置网卡混杂模式" class="headerlink" title="设置网卡混杂模式"></a>设置网卡混杂模式</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ip <span class="built_in">link</span> <span class="built_in">set</span> enp0s18 promisc on</span><br></pre></td></tr></table></figure>
+<h3 id="设置网卡混杂模式"><a href="#设置网卡混杂模式" class="headerlink" title="设置网卡混杂模式"></a>设置网卡混杂模式</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">ip <span class="built_in">link</span> <span class="built_in">set</span> enp0s18 promisc on</span><br></pre></td></tr></table></figure>
 
 <blockquote>
 <p>持久化配置需将上述命令写入 <code>/etc/rc.local</code>。</p>
 </blockquote>
-<h3 id="创建-macvlan-网络"><a href="#创建-macvlan-网络" class="headerlink" title="创建 macvlan 网络"></a>创建 macvlan 网络</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">docker network create -d macvlan \</span><br><span class="line">  --subnet=192.168.88.0/24 \</span><br><span class="line">  --gateway=192.168.88.1 \</span><br><span class="line">  -o parent=enp0s18 \</span><br><span class="line">  opnet</span><br></pre></td></tr></table></figure>
+<h3 id="创建-macvlan-网络"><a href="#创建-macvlan-网络" class="headerlink" title="创建 macvlan 网络"></a>创建 macvlan 网络</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">docker network create -d macvlan \</span><br><span class="line">  --subnet=192.168.88.0/24 \</span><br><span class="line">  --gateway=192.168.88.1 \</span><br><span class="line">  -o parent=enp0s18 \</span><br><span class="line">  opnet</span><br></pre></td></tr></table></figure>
 
 <p>参数说明：</p>
 <table>
@@ -126,7 +134,7 @@
 </tr>
 </tbody></table>
 <hr>
-<h2 id="部署-Mihomo"><a href="#部署-Mihomo" class="headerlink" title="部署 Mihomo"></a>部署 Mihomo</h2><h3 id="准备配置文件"><a href="#准备配置文件" class="headerlink" title="准备配置文件"></a>准备配置文件</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">mkdir</span> -p /etc/mihomo</span><br></pre></td></tr></table></figure>
+<h2 id="部署-Mihomo"><a href="#部署-Mihomo" class="headerlink" title="部署 Mihomo"></a>部署 Mihomo</h2><h3 id="准备配置文件"><a href="#准备配置文件" class="headerlink" title="准备配置文件"></a>准备配置文件</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">mkdir</span> -p /etc/mihomo</span><br></pre></td></tr></table></figure>
 
 <p>准备 <code>config.yaml</code> 配置文件，放置到 <code>/etc/mihomo/</code> 目录下：</p>
 <ul>
@@ -134,7 +142,7 @@
 <li><strong>自建 VPS 用户</strong>：配置代理节点信息（地址、端口、密码、加密方式等）</li>
 </ul>
 <p>可通过 SFTP 工具上传配置文件到 <code>/etc/mihomo/</code>。</p>
-<h3 id="启动-Mihomo-容器"><a href="#启动-Mihomo-容器" class="headerlink" title="启动 Mihomo 容器"></a>启动 Mihomo 容器</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">docker run -d --privileged \</span><br><span class="line">  --name=mihomo \</span><br><span class="line">  --restart=always \</span><br><span class="line">  --network opnet \</span><br><span class="line">  --ip 192.168.88.10 \</span><br><span class="line">  -v /etc/mihomo:/root/.config/mihomo/ \</span><br><span class="line">  metacubex/mihomo:latest</span><br></pre></td></tr></table></figure>
+<h3 id="启动-Mihomo-容器"><a href="#启动-Mihomo-容器" class="headerlink" title="启动 Mihomo 容器"></a>启动 Mihomo 容器</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">docker run -d --privileged \</span><br><span class="line">  --name=mihomo \</span><br><span class="line">  --restart=always \</span><br><span class="line">  --network opnet \</span><br><span class="line">  --ip 192.168.88.10 \</span><br><span class="line">  -v /etc/mihomo:/root/.config/mihomo/ \</span><br><span class="line">  metacubex/mihomo:latest</span><br></pre></td></tr></table></figure>
 
 <p>参数说明：</p>
 <table>
@@ -181,29 +189,84 @@
 </ol>
 <hr>
 <h2 id="视频教程"><a href="#视频教程" class="headerlink" title="视频教程"></a>视频教程</h2><iframe src="//player.bilibili.com/player.html" width="100%" height="400" frameborder="no" scrolling="no" allowfullscreen="true"></iframe></div>
+      
+        <nav class="post-nav">
+          
+            <a class="prev" href="/post/MiSub%E9%83%A8%E7%BD%B2%E6%95%99%E7%A8%8B/">
+              <span class="nav-label">← Previous</span>
+              <span class="nav-title">MiSub 部署教程 — 轻量级代理订阅管理面板</span>
+            </a>
+          
+          
+            <a class="next" href="/post/%E5%B8%B8%E7%94%A8VPS%E8%84%9A%E6%9C%AC/">
+              <span class="nav-label">Next →</span>
+              <span class="nav-title">常用 VPS 脚本合集</span>
+            </a>
+          
+        </nav>
+      
+    </article>
     
-      <nav class="post-nav">
+      
+      
+      
+      
         
-          <a class="prev" href="/post/MiSub%E9%83%A8%E7%BD%B2%E6%95%99%E7%A8%8B/">
-            <span class="nav-label">← Previous</span>
-            <span class="nav-title">MiSub 部署教程 — 轻量级代理订阅管理面板</span>
-          </a>
-        
-        
-          <a class="next" href="/post/%E5%B8%B8%E7%94%A8VPS%E8%84%9A%E6%9C%AC/">
-            <span class="nav-label">Next →</span>
-            <span class="nav-title">常用 VPS 脚本合集</span>
-          </a>
-        
-      </nav>
+        <div class="related-posts">
+          <h3 class="related-title">Related Posts</h3>
+          <div class="related-list">
+            
+              <a class="related-item" href="/post/MiGate%E9%83%A8%E7%BD%B2%E6%95%99%E7%A8%8B/">
+                <span class="related-item-title">MiGate 部署教程 — 轻量级 VPS 代理管理面板</span>
+                <span class="related-item-date">6月 29, 2026</span>
+              </a>
+            
+              <a class="related-item" href="/post/%E5%B8%B8%E7%94%A8VPS%E8%84%9A%E6%9C%AC/">
+                <span class="related-item-title">常用 VPS 脚本合集</span>
+                <span class="related-item-date">10月 27, 2024</span>
+              </a>
+            
+          </div>
+        </div>
+      
     
-  </article>
-</div></main>
+  </div>
+  <aside class="sidebar post-sidebar">
+    <div class="sidebar-sticky">
+      <div class="sidebar-card">
+        <div class="profile-section-title">目录</div>
+        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%8E%AF%E5%A2%83%E5%87%86%E5%A4%87"><span class="toc-text">环境准备</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%88%9B%E5%BB%BA-Debian-%E8%99%9A%E6%8B%9F%E6%9C%BA"><span class="toc-text">创建 Debian 虚拟机</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%90%AF%E7%94%A8-SSH-%E8%BF%9C%E7%A8%8B%E7%AE%A1%E7%90%86"><span class="toc-text">启用 SSH 远程管理</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AE%89%E8%A3%85-Docker"><span class="toc-text">安装 Docker</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%BD%91%E7%BB%9C%E9%85%8D%E7%BD%AE"><span class="toc-text">网络配置</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%9F%A5%E7%9C%8B%E7%BD%91%E5%8D%A1%E4%BF%A1%E6%81%AF"><span class="toc-text">查看网卡信息</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%AE%BE%E7%BD%AE%E7%BD%91%E5%8D%A1%E6%B7%B7%E6%9D%82%E6%A8%A1%E5%BC%8F"><span class="toc-text">设置网卡混杂模式</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%88%9B%E5%BB%BA-macvlan-%E7%BD%91%E7%BB%9C"><span class="toc-text">创建 macvlan 网络</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%83%A8%E7%BD%B2-Mihomo"><span class="toc-text">部署 Mihomo</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%87%86%E5%A4%87%E9%85%8D%E7%BD%AE%E6%96%87%E4%BB%B6"><span class="toc-text">准备配置文件</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%90%AF%E5%8A%A8-Mihomo-%E5%AE%B9%E5%99%A8"><span class="toc-text">启动 Mihomo 容器</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AE%A2%E6%88%B7%E7%AB%AF%E9%85%8D%E7%BD%AE"><span class="toc-text">客户端配置</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%AE%BE%E7%BD%AE-DNS"><span class="toc-text">设置 DNS</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%AE%BE%E7%BD%AE%E8%B7%AF%E7%94%B1"><span class="toc-text">设置路由</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%AA%8C%E8%AF%81%E9%83%A8%E7%BD%B2"><span class="toc-text">验证部署</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%A7%86%E9%A2%91%E6%95%99%E7%A8%8B"><span class="toc-text">视频教程</span></a></li></ol>
+      </div>
+      <div class="sidebar-card">
+        <div class="profile-header">
+          <img class="avatar" src="/img/logo.png" alt="avatar">
+          <div class="profile-info">
+            <div class="profile-name">Sam</div>
+            <div class="profile-id">记录技术，分享生活。</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </aside>
+</div>
+<div class="lightbox" id="lightbox">
+  <span class="lightbox-close">&times;</span>
+  <img class="lightbox-img" id="lightboxImg" src="" alt="">
+</div>
+<button class="back-top" id="backTop" aria-label="Back to top">
+  <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 15l-6-6-6 6"/></svg>
+</button></main>
     <footer class="footer">
   <div class="footer-inner">
-    <p>© 2026 Sam<br>Powered by <a href="https://hexo.io" target="_blank" rel="noopener">Hexo</a> &amp; <a href="https://github.com/imzyb/migo" target="_blank" rel="noopener">MiGo</a></p>
+    <p>&copy; 2026 Sam<br>Powered by <a href="https://hexo.io" target="_blank" rel="noopener">Hexo</a> &amp; <a href="https://github.com/imzyb/migo" target="_blank" rel="noopener">MiGo</a></p>
   </div>
 </footer>
+<div class="search-overlay" id="searchOverlay">
+  <div class="search-modal">
+    <input class="search-input" id="searchInput" type="text" placeholder="Search posts..." autocomplete="off">
+    <div class="search-results" id="searchResults"></div>
+  </div>
+</div>
 <script>
 (function() {
   var t = document.getElementById('themeToggle');
@@ -217,6 +280,7 @@
     var st = (function(){ try { return localStorage.getItem('migo-theme'); } catch(e) {} })();
     if (st) document.documentElement.setAttribute('data-theme', st);
   }
+
   var m = document.getElementById('menuToggle');
   var n = document.getElementById('nav');
   if (m && n) {
@@ -231,6 +295,127 @@
         m.classList.remove('menu-open');
         document.body.classList.remove('body-nav-open');
       });
+    });
+  }
+
+  var bt = document.getElementById('backTop');
+  if (bt) {
+    window.addEventListener('scroll', function() {
+      bt.classList.toggle('visible', window.scrollY > 400);
+    });
+    bt.addEventListener('click', function() { window.scrollTo({ top: 0, behavior: 'smooth' }); });
+  }
+
+  var pb = document.getElementById('progressBar');
+  if (pb) {
+    window.addEventListener('scroll', function() {
+      var h = document.documentElement;
+      var p = (h.scrollTop || document.body.scrollTop) / ((h.scrollHeight || document.body.scrollHeight) - (h.clientHeight || document.body.clientHeight)) * 100;
+      pb.style.width = Math.min(p, 100) + '%';
+    });
+  }
+
+  document.querySelectorAll('.highlight').forEach(function(block) {
+    var btn = document.createElement('button');
+    btn.className = 'copy-btn';
+    btn.innerHTML = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>';
+    block.appendChild(btn);
+    btn.addEventListener('click', function() {
+      var code = block.querySelector('code');
+      if (!code) return;
+      var text = code.textContent;
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(text).then(function() {
+          btn.classList.add('copied');
+          btn.innerHTML = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>';
+          setTimeout(function() {
+            btn.classList.remove('copied');
+            btn.innerHTML = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>';
+          }, 2000);
+        });
+      }
+    });
+  });
+
+  var lb = document.getElementById('lightbox');
+  var lbImg = document.getElementById('lightboxImg');
+  if (lb && lbImg) {
+    document.getElementById('postContent').addEventListener('click', function(e) {
+      if (e.target.tagName === 'IMG') {
+        lbImg.src = e.target.src;
+        lb.classList.add('open');
+        document.body.style.overflow = 'hidden';
+      }
+    });
+    lb.addEventListener('click', function() {
+      lb.classList.remove('open');
+      document.body.style.overflow = '';
+    });
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape' && lb.classList.contains('open')) {
+        lb.classList.remove('open');
+        document.body.style.overflow = '';
+      }
+    });
+  }
+
+  var so = document.getElementById('searchOverlay');
+  var sb = document.getElementById('searchBtn');
+  var si = document.getElementById('searchInput');
+  var sr = document.getElementById('searchResults');
+  var searchData = [];
+  if (so && sb && si && sr) {
+    sb.addEventListener('click', function() { so.classList.add('open'); si.focus(); si.value = ''; sr.innerHTML = ''; });
+    so.addEventListener('click', function(e) { if (e.target === so) { so.classList.remove('open'); } });
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape' && so.classList.contains('open')) { so.classList.remove('open'); }
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k') { e.preventDefault(); so.classList.add('open'); si.focus(); si.value = ''; sr.innerHTML = ''; }
+    });
+    fetch('/search.xml').then(function(r) { return r.text(); }).then(function(xml) {
+      var parser = new DOMParser();
+      var doc = parser.parseFromString(xml, 'text/xml');
+      doc.querySelectorAll('entry').forEach(function(entry) {
+        searchData.push({
+          title: (entry.querySelector('title') || {}).textContent || '',
+          url: (entry.querySelector('url') || {}).textContent || '',
+          date: (entry.querySelector('published') || {}).textContent || ''
+        });
+      });
+    });
+    si.addEventListener('input', function() {
+      var q = si.value.toLowerCase().trim();
+      if (!q) { sr.innerHTML = ''; return; }
+      var results = searchData.filter(function(item) { return item.title.toLowerCase().indexOf(q) > -1; });
+      if (results.length === 0) {
+        sr.innerHTML = '<div class="search-empty">No results found</div>';
+      } else {
+        sr.innerHTML = results.map(function(item) {
+          return '<a class="search-result-item" href="' + item.url + '">' +
+            '<div class="search-result-title">' + item.title + '</div>' +
+            '<div class="search-result-meta">' + (item.date ? new Date(item.date).toLocaleDateString() : '') + '</div></a>';
+        }).join('');
+      }
+    });
+  }
+
+  var tocLinks = document.querySelectorAll('.toc .toc-link');
+  if (tocLinks.length > 0) {
+    var headings = [];
+    tocLinks.forEach(function(link) {
+      var id = link.getAttribute('href');
+      if (id) {
+        var el = document.getElementById(id.substring(1));
+        if (el) headings.push({ el: el, link: link });
+      }
+    });
+    window.addEventListener('scroll', function() {
+      var scrollY = window.scrollY + 100;
+      var current = null;
+      headings.forEach(function(h) {
+        if (h.el.offsetTop <= scrollY) current = h;
+      });
+      tocLinks.forEach(function(l) { l.classList.remove('active'); });
+      if (current) current.link.classList.add('active');
     });
   }
 })();

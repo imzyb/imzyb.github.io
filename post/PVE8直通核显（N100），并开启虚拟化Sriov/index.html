@@ -34,6 +34,9 @@
       <a href="/categories">Categories</a>
       <a href="/tags">Tags</a>
     </nav>
+    <button class="search-btn" id="searchBtn" aria-label="Search">
+      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+    </button>
     <button class="menu-toggle" id="menuToggle" aria-label="Toggle menu">
       <span></span><span></span><span></span>
     </button>
@@ -42,38 +45,43 @@
     </button>
   </div>
 </header>
-    <main class="main"><div class="container container-narrow">
-  <article class="post-full">
-    
-    <header class="post-full-header">
-      <h1 class="post-full-title">PVE 8 直通 N100 核显并开启 SR-IOV 虚拟化</h1>
-      <div class="post-full-meta">
-        <time>9月 24, 2024</time>
-        
-          <span class="post-category">服务器运维</span>
-        
-        
-          <span>807 words</span>
-          <span>3 min read</span>
-        
-      </div>
+    <main class="main"><div class="progress-bar" id="progressBar"></div>
+<div class="post-wrap">
+  <div class="post-main">
+    <article class="post-full">
       
-        <div class="post-full-tags">
+      <header class="post-full-header">
+        <h1 class="post-full-title">PVE 8 直通 N100 核显并开启 SR-IOV 虚拟化</h1>
+        <div class="post-full-meta">
+          <time>9月 24, 2024</time>
           
-            <a class="tag" href="/tags/PVE/">#PVE</a>
+            <span class="post-updated">Updated 6月 30, 2026</span>
           
-            <a class="tag" href="/tags/N100/">#N100</a>
           
-            <a class="tag" href="/tags/SR-IOV/">#SR-IOV</a>
+            <span class="post-category">服务器运维</span>
           
-            <a class="tag" href="/tags/%E8%99%9A%E6%8B%9F%E5%8C%96/">#虚拟化</a>
           
-            <a class="tag" href="/tags/%E6%98%BE%E5%8D%A1%E7%9B%B4%E9%80%9A/">#显卡直通</a>
+            <span>806 words</span>
+            <span>3 min read</span>
           
         </div>
-      
-    </header>
-    <div class="post-content"><blockquote>
+        
+          <div class="post-full-tags">
+            
+              <a class="tag" href="/tags/PVE/">#PVE</a>
+            
+              <a class="tag" href="/tags/N100/">#N100</a>
+            
+              <a class="tag" href="/tags/SR-IOV/">#SR-IOV</a>
+            
+              <a class="tag" href="/tags/%E8%99%9A%E6%8B%9F%E5%8C%96/">#虚拟化</a>
+            
+              <a class="tag" href="/tags/%E6%98%BE%E5%8D%A1%E7%9B%B4%E9%80%9A/">#显卡直通</a>
+            
+          </div>
+        
+      </header>
+      <div class="post-content" id="postContent"><blockquote>
 <p>本文介绍在 <strong>Proxmox VE 8.1</strong> 系统上直通 Intel N100 核显并开启 SR-IOV（Single Root I&#x2F;O Virtualization）的完整步骤，让多个虚拟机可以共享 GPU 硬件解码能力。</p>
 </blockquote>
 <h2 id="前置条件"><a href="#前置条件" class="headerlink" title="前置条件"></a>前置条件</h2><ul>
@@ -83,10 +91,10 @@
 </ul>
 <hr>
 <h2 id="一、开启-IOMMU"><a href="#一、开启-IOMMU" class="headerlink" title="一、开启 IOMMU"></a>一、开启 IOMMU</h2><h3 id="修改-GRUB-配置"><a href="#修改-GRUB-配置" class="headerlink" title="修改 GRUB 配置"></a>修改 GRUB 配置</h3><p>编辑 GRUB 配置文件：</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">nano /etc/default/grub</span><br></pre></td></tr></table></figure>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">nano /etc/default/grub</span><br></pre></td></tr></table></figure>
 
 <p>找到 <code>GRUB_CMDLINE_LINUX_DEFAULT=&quot;quiet&quot;</code>，修改为：</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">GRUB_CMDLINE_LINUX_DEFAULT=<span class="string">&quot;quiet intel_iommu=on i915.enable_guc=3 i915.max_vfs=7&quot;</span></span><br></pre></td></tr></table></figure>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">GRUB_CMDLINE_LINUX_DEFAULT=<span class="string">&quot;quiet intel_iommu=on i915.enable_guc=3 i915.max_vfs=7&quot;</span></span><br></pre></td></tr></table></figure>
 
 <p>参数说明：</p>
 <table>
@@ -109,56 +117,56 @@
 <td>最大虚拟功能数量（根据需求调整）</td>
 </tr>
 </tbody></table>
-<h3 id="更新-GRUB-并重启"><a href="#更新-GRUB-并重启" class="headerlink" title="更新 GRUB 并重启"></a>更新 GRUB 并重启</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">update-grub</span><br><span class="line">reboot</span><br></pre></td></tr></table></figure>
+<h3 id="更新-GRUB-并重启"><a href="#更新-GRUB-并重启" class="headerlink" title="更新 GRUB 并重启"></a>更新 GRUB 并重启</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">update-grub</span><br><span class="line">reboot</span><br></pre></td></tr></table></figure>
 
 <h3 id="验证-IOMMU-是否开启"><a href="#验证-IOMMU-是否开启" class="headerlink" title="验证 IOMMU 是否开启"></a>验证 IOMMU 是否开启</h3><p>重启后运行：</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">dmesg | grep -e DMAR -e IOMMU</span><br></pre></td></tr></table></figure>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">dmesg | grep -e DMAR -e IOMMU</span><br></pre></td></tr></table></figure>
 
 <p>正常输出应包含 <code>DMAR: IOMMU enabled</code>，例如：</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">[    0.014745] ACPI: DMAR 0x00000000734DC000 000088 (v02 INTEL  EDK2     00000002      01000013)</span><br><span class="line">[    0.046876] DMAR: IOMMU enabled</span><br><span class="line">[    0.106676] DMAR: Host address width 39</span><br></pre></td></tr></table></figure>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">[    0.014745] ACPI: DMAR 0x00000000734DC000 000088 (v02 INTEL  EDK2     00000002      01000013)</span><br><span class="line">[    0.046876] DMAR: IOMMU enabled</span><br><span class="line">[    0.106676] DMAR: Host address width 39</span><br></pre></td></tr></table></figure>
 
 <hr>
 <h2 id="二、加载-VFIO-内核模块"><a href="#二、加载-VFIO-内核模块" class="headerlink" title="二、加载 VFIO 内核模块"></a>二、加载 VFIO 内核模块</h2><p>编辑 <code>/etc/modules</code>：</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">nano /etc/modules</span><br></pre></td></tr></table></figure>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">nano /etc/modules</span><br></pre></td></tr></table></figure>
 
 <p>添加以下内容：</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">vfio</span><br><span class="line">vfio_iommu_type1</span><br><span class="line">vfio_pci</span><br><span class="line">vfio_virqfd</span><br></pre></td></tr></table></figure>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">vfio</span><br><span class="line">vfio_iommu_type1</span><br><span class="line">vfio_pci</span><br><span class="line">vfio_virqfd</span><br></pre></td></tr></table></figure>
 
 <p>这些模块用于将 PCIe 设备 passthrough 给虚拟机时启用 IOMMU 分组转换，提高未使用 PCIe 设备的性能。</p>
 <hr>
-<h2 id="三、安装-SR-IOV-驱动"><a href="#三、安装-SR-IOV-驱动" class="headerlink" title="三、安装 SR-IOV 驱动"></a>三、安装 SR-IOV 驱动</h2><h3 id="查询内核版本"><a href="#查询内核版本" class="headerlink" title="查询内核版本"></a>查询内核版本</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">uname</span> -r</span><br></pre></td></tr></table></figure>
+<h2 id="三、安装-SR-IOV-驱动"><a href="#三、安装-SR-IOV-驱动" class="headerlink" title="三、安装 SR-IOV 驱动"></a>三、安装 SR-IOV 驱动</h2><h3 id="查询内核版本"><a href="#查询内核版本" class="headerlink" title="查询内核版本"></a>查询内核版本</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">uname</span> -r</span><br></pre></td></tr></table></figure>
 
 <p>示例输出：<code>6.5.11-7-pve</code></p>
 <h3 id="安装内核-Headers"><a href="#安装内核-Headers" class="headerlink" title="安装内核 Headers"></a>安装内核 Headers</h3><p>到 <a target="_blank" rel="noopener" href="http://mirrors.ustc.edu.cn/proxmox/debian/dists/bookworm/pve-no-subscription/binary-amd64/">中科大 PVE 镜像源</a> 下载对应版本的 headers 包：</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">wget http://mirrors.ustc.edu.cn/proxmox/debian/dists/bookworm/pve-no-subscription/binary-amd64/proxmox-headers-6.5.11-7-pve_6.5.11-7_amd64.deb</span><br><span class="line">dpkg -i proxmox-headers-6.5.11-7-pve_6.5.11-7_amd64.deb</span><br></pre></td></tr></table></figure>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">wget http://mirrors.ustc.edu.cn/proxmox/debian/dists/bookworm/pve-no-subscription/binary-amd64/proxmox-headers-6.5.11-7-pve_6.5.11-7_amd64.deb</span><br><span class="line">dpkg -i proxmox-headers-6.5.11-7-pve_6.5.11-7_amd64.deb</span><br></pre></td></tr></table></figure>
 
-<h3 id="安装依赖"><a href="#安装依赖" class="headerlink" title="安装依赖"></a>安装依赖</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">apt install -y build-essential git unzip dkms</span><br></pre></td></tr></table></figure>
+<h3 id="安装依赖"><a href="#安装依赖" class="headerlink" title="安装依赖"></a>安装依赖</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">apt install -y build-essential git unzip dkms</span><br></pre></td></tr></table></figure>
 
-<h3 id="下载-SR-IOV-DKMS-驱动"><a href="#下载-SR-IOV-DKMS-驱动" class="headerlink" title="下载 SR-IOV DKMS 驱动"></a>下载 SR-IOV DKMS 驱动</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">git <span class="built_in">clone</span> https://github.com/strongtz/i915-sriov-dkms.git</span><br><span class="line"><span class="built_in">mv</span> i915-sriov-dkms /usr/src</span><br></pre></td></tr></table></figure>
+<h3 id="下载-SR-IOV-DKMS-驱动"><a href="#下载-SR-IOV-DKMS-驱动" class="headerlink" title="下载 SR-IOV DKMS 驱动"></a>下载 SR-IOV DKMS 驱动</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">git <span class="built_in">clone</span> https://github.com/strongtz/i915-sriov-dkms.git</span><br><span class="line"><span class="built_in">mv</span> i915-sriov-dkms /usr/src</span><br></pre></td></tr></table></figure>
 
-<h3 id="修改-DKMS-配置"><a href="#修改-DKMS-配置" class="headerlink" title="修改 DKMS 配置"></a>修改 DKMS 配置</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">nano /usr/src/i915-sriov-dkms/dkms.conf</span><br></pre></td></tr></table></figure>
+<h3 id="修改-DKMS-配置"><a href="#修改-DKMS-配置" class="headerlink" title="修改 DKMS 配置"></a>修改 DKMS 配置</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">nano /usr/src/i915-sriov-dkms/dkms.conf</span><br></pre></td></tr></table></figure>
 
 <p>按实际内核版本修改：</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">PACKAGE_NAME=&quot;i915-sriov-dkms&quot;</span><br><span class="line">PACKAGE_VERSION=&quot;6.5&quot;</span><br></pre></td></tr></table></figure>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">PACKAGE_NAME=&quot;i915-sriov-dkms&quot;</span><br><span class="line">PACKAGE_VERSION=&quot;6.5&quot;</span><br></pre></td></tr></table></figure>
 
-<h3 id="安装驱动"><a href="#安装驱动" class="headerlink" title="安装驱动"></a>安装驱动</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">dkms install -m i915-sriov -v dkms --force</span><br></pre></td></tr></table></figure>
+<h3 id="安装驱动"><a href="#安装驱动" class="headerlink" title="安装驱动"></a>安装驱动</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">dkms install -m i915-sriov -v dkms --force</span><br></pre></td></tr></table></figure>
 
-<h3 id="验证安装"><a href="#验证安装" class="headerlink" title="验证安装"></a>验证安装</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">dkms status</span><br></pre></td></tr></table></figure>
+<h3 id="验证安装"><a href="#验证安装" class="headerlink" title="验证安装"></a>验证安装</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">dkms status</span><br></pre></td></tr></table></figure>
 
 <p>正常输出：</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">i915-sriov-dkms/6.5, 6.5.11-7-pve, x86_64: installed</span><br></pre></td></tr></table></figure>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">i915-sriov-dkms/6.5, 6.5.11-7-pve, x86_64: installed</span><br></pre></td></tr></table></figure>
 
-<h3 id="重启"><a href="#重启" class="headerlink" title="重启"></a>重启</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">reboot</span><br></pre></td></tr></table></figure>
+<h3 id="重启"><a href="#重启" class="headerlink" title="重启"></a>重启</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">reboot</span><br></pre></td></tr></table></figure>
 
 <hr>
 <h2 id="四、配置开机启动-SR-IOV"><a href="#四、配置开机启动-SR-IOV" class="headerlink" title="四、配置开机启动 SR-IOV"></a>四、配置开机启动 SR-IOV</h2><p>创建开机脚本，自动创建虚拟功能：</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">echo</span> <span class="string">&#x27;#!/bin/bash&#x27;</span> &gt;&gt; /etc/rc.local</span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;echo 7 &gt; /sys/devices/pci0000:00/0000:00:02.0/sriov_numvfs&quot;</span> &gt;&gt; /etc/rc.local</span><br><span class="line"><span class="built_in">chmod</span> +x /etc/rc.local</span><br></pre></td></tr></table></figure>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">echo</span> <span class="string">&#x27;#!/bin/bash&#x27;</span> &gt;&gt; /etc/rc.local</span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;echo 7 &gt; /sys/devices/pci0000:00/0000:00:02.0/sriov_numvfs&quot;</span> &gt;&gt; /etc/rc.local</span><br><span class="line"><span class="built_in">chmod</span> +x /etc/rc.local</span><br></pre></td></tr></table></figure>
 
 <blockquote>
 <p><code>echo 7</code> 表示开启 7 个 VF（Virtual Function），可根据需求改为其他数值。</p>
 </blockquote>
 <h3 id="验证-SR-IOV"><a href="#验证-SR-IOV" class="headerlink" title="验证 SR-IOV"></a>验证 SR-IOV</h3><p>重启后使用 <code>lspci</code> 查看是否出现多个 <code>0000:00:02</code> 设备：</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">lspci | grep 00:02</span><br></pre></td></tr></table></figure>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">lspci | grep 00:02</span><br></pre></td></tr></table></figure>
 
 <p>若能列出多个虚拟功能设备，即代表成功。</p>
 <hr>
@@ -168,7 +176,7 @@
 <li><strong>显卡</strong>：设置为 <code>无</code>（不使用虚拟显卡，直接直通 VF）</li>
 </ul>
 <h3 id="Linux-虚拟机"><a href="#Linux-虚拟机" class="headerlink" title="Linux 虚拟机"></a>Linux 虚拟机</h3><p>直通后可使用 <code>renderD128</code> 设备进行硬件编解码。如果未出现该设备，运行以下命令排查：</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">dmesg | grep i915</span><br></pre></td></tr></table></figure>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">dmesg | grep i915</span><br></pre></td></tr></table></figure>
 
 <h3 id="Windows-虚拟机"><a href="#Windows-虚拟机" class="headerlink" title="Windows 虚拟机"></a>Windows 虚拟机</h3><ol>
 <li>虚拟机配置必须为 OVMF + q35</li>
@@ -206,24 +214,61 @@
 </tbody></table>
 <hr>
 <h2 id="视频教程"><a href="#视频教程" class="headerlink" title="视频教程"></a>视频教程</h2><iframe src="//player.bilibili.com/player.html" width="100%" height="400" frameborder="no" scrolling="no" allowfullscreen="true"></iframe></div>
+      
+        <nav class="post-nav">
+          
+            <a class="prev" href="/post/%E5%B8%B8%E7%94%A8VPS%E8%84%9A%E6%9C%AC/">
+              <span class="nav-label">← Previous</span>
+              <span class="nav-title">常用 VPS 脚本合集</span>
+            </a>
+          
+          
+        </nav>
+      
+    </article>
     
-      <nav class="post-nav">
-        
-          <a class="prev" href="/post/%E5%B8%B8%E7%94%A8VPS%E8%84%9A%E6%9C%AC/">
-            <span class="nav-label">← Previous</span>
-            <span class="nav-title">常用 VPS 脚本合集</span>
-          </a>
-        
-        
-      </nav>
+      
+      
+      
+      
     
-  </article>
-</div></main>
+  </div>
+  <aside class="sidebar post-sidebar">
+    <div class="sidebar-sticky">
+      <div class="sidebar-card">
+        <div class="profile-section-title">目录</div>
+        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%89%8D%E7%BD%AE%E6%9D%A1%E4%BB%B6"><span class="toc-text">前置条件</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E5%BC%80%E5%90%AF-IOMMU"><span class="toc-text">一、开启 IOMMU</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BF%AE%E6%94%B9-GRUB-%E9%85%8D%E7%BD%AE"><span class="toc-text">修改 GRUB 配置</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%9B%B4%E6%96%B0-GRUB-%E5%B9%B6%E9%87%8D%E5%90%AF"><span class="toc-text">更新 GRUB 并重启</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%AA%8C%E8%AF%81-IOMMU-%E6%98%AF%E5%90%A6%E5%BC%80%E5%90%AF"><span class="toc-text">验证 IOMMU 是否开启</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81%E5%8A%A0%E8%BD%BD-VFIO-%E5%86%85%E6%A0%B8%E6%A8%A1%E5%9D%97"><span class="toc-text">二、加载 VFIO 内核模块</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81%E5%AE%89%E8%A3%85-SR-IOV-%E9%A9%B1%E5%8A%A8"><span class="toc-text">三、安装 SR-IOV 驱动</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%9F%A5%E8%AF%A2%E5%86%85%E6%A0%B8%E7%89%88%E6%9C%AC"><span class="toc-text">查询内核版本</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AE%89%E8%A3%85%E5%86%85%E6%A0%B8-Headers"><span class="toc-text">安装内核 Headers</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AE%89%E8%A3%85%E4%BE%9D%E8%B5%96"><span class="toc-text">安装依赖</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%8B%E8%BD%BD-SR-IOV-DKMS-%E9%A9%B1%E5%8A%A8"><span class="toc-text">下载 SR-IOV DKMS 驱动</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BF%AE%E6%94%B9-DKMS-%E9%85%8D%E7%BD%AE"><span class="toc-text">修改 DKMS 配置</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AE%89%E8%A3%85%E9%A9%B1%E5%8A%A8"><span class="toc-text">安装驱动</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%AA%8C%E8%AF%81%E5%AE%89%E8%A3%85"><span class="toc-text">验证安装</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%87%8D%E5%90%AF"><span class="toc-text">重启</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9B%E3%80%81%E9%85%8D%E7%BD%AE%E5%BC%80%E6%9C%BA%E5%90%AF%E5%8A%A8-SR-IOV"><span class="toc-text">四、配置开机启动 SR-IOV</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%AA%8C%E8%AF%81-SR-IOV"><span class="toc-text">验证 SR-IOV</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%94%E3%80%81%E8%99%9A%E6%8B%9F%E6%9C%BA%E9%85%8D%E7%BD%AE%E8%A6%81%E6%B1%82"><span class="toc-text">五、虚拟机配置要求</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%80%9A%E7%94%A8%E8%A6%81%E6%B1%82"><span class="toc-text">通用要求</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Linux-%E8%99%9A%E6%8B%9F%E6%9C%BA"><span class="toc-text">Linux 虚拟机</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Windows-%E8%99%9A%E6%8B%9F%E6%9C%BA"><span class="toc-text">Windows 虚拟机</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%8E%92%E9%94%99%E5%8F%82%E8%80%83"><span class="toc-text">排错参考</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%A7%86%E9%A2%91%E6%95%99%E7%A8%8B"><span class="toc-text">视频教程</span></a></li></ol>
+      </div>
+      <div class="sidebar-card">
+        <div class="profile-header">
+          <img class="avatar" src="/img/logo.png" alt="avatar">
+          <div class="profile-info">
+            <div class="profile-name">Sam</div>
+            <div class="profile-id">记录技术，分享生活。</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </aside>
+</div>
+<div class="lightbox" id="lightbox">
+  <span class="lightbox-close">&times;</span>
+  <img class="lightbox-img" id="lightboxImg" src="" alt="">
+</div>
+<button class="back-top" id="backTop" aria-label="Back to top">
+  <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 15l-6-6-6 6"/></svg>
+</button></main>
     <footer class="footer">
   <div class="footer-inner">
-    <p>© 2026 Sam<br>Powered by <a href="https://hexo.io" target="_blank" rel="noopener">Hexo</a> &amp; <a href="https://github.com/imzyb/migo" target="_blank" rel="noopener">MiGo</a></p>
+    <p>&copy; 2026 Sam<br>Powered by <a href="https://hexo.io" target="_blank" rel="noopener">Hexo</a> &amp; <a href="https://github.com/imzyb/migo" target="_blank" rel="noopener">MiGo</a></p>
   </div>
 </footer>
+<div class="search-overlay" id="searchOverlay">
+  <div class="search-modal">
+    <input class="search-input" id="searchInput" type="text" placeholder="Search posts..." autocomplete="off">
+    <div class="search-results" id="searchResults"></div>
+  </div>
+</div>
 <script>
 (function() {
   var t = document.getElementById('themeToggle');
@@ -237,6 +282,7 @@
     var st = (function(){ try { return localStorage.getItem('migo-theme'); } catch(e) {} })();
     if (st) document.documentElement.setAttribute('data-theme', st);
   }
+
   var m = document.getElementById('menuToggle');
   var n = document.getElementById('nav');
   if (m && n) {
@@ -251,6 +297,127 @@
         m.classList.remove('menu-open');
         document.body.classList.remove('body-nav-open');
       });
+    });
+  }
+
+  var bt = document.getElementById('backTop');
+  if (bt) {
+    window.addEventListener('scroll', function() {
+      bt.classList.toggle('visible', window.scrollY > 400);
+    });
+    bt.addEventListener('click', function() { window.scrollTo({ top: 0, behavior: 'smooth' }); });
+  }
+
+  var pb = document.getElementById('progressBar');
+  if (pb) {
+    window.addEventListener('scroll', function() {
+      var h = document.documentElement;
+      var p = (h.scrollTop || document.body.scrollTop) / ((h.scrollHeight || document.body.scrollHeight) - (h.clientHeight || document.body.clientHeight)) * 100;
+      pb.style.width = Math.min(p, 100) + '%';
+    });
+  }
+
+  document.querySelectorAll('.highlight').forEach(function(block) {
+    var btn = document.createElement('button');
+    btn.className = 'copy-btn';
+    btn.innerHTML = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>';
+    block.appendChild(btn);
+    btn.addEventListener('click', function() {
+      var code = block.querySelector('code');
+      if (!code) return;
+      var text = code.textContent;
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(text).then(function() {
+          btn.classList.add('copied');
+          btn.innerHTML = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>';
+          setTimeout(function() {
+            btn.classList.remove('copied');
+            btn.innerHTML = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>';
+          }, 2000);
+        });
+      }
+    });
+  });
+
+  var lb = document.getElementById('lightbox');
+  var lbImg = document.getElementById('lightboxImg');
+  if (lb && lbImg) {
+    document.getElementById('postContent').addEventListener('click', function(e) {
+      if (e.target.tagName === 'IMG') {
+        lbImg.src = e.target.src;
+        lb.classList.add('open');
+        document.body.style.overflow = 'hidden';
+      }
+    });
+    lb.addEventListener('click', function() {
+      lb.classList.remove('open');
+      document.body.style.overflow = '';
+    });
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape' && lb.classList.contains('open')) {
+        lb.classList.remove('open');
+        document.body.style.overflow = '';
+      }
+    });
+  }
+
+  var so = document.getElementById('searchOverlay');
+  var sb = document.getElementById('searchBtn');
+  var si = document.getElementById('searchInput');
+  var sr = document.getElementById('searchResults');
+  var searchData = [];
+  if (so && sb && si && sr) {
+    sb.addEventListener('click', function() { so.classList.add('open'); si.focus(); si.value = ''; sr.innerHTML = ''; });
+    so.addEventListener('click', function(e) { if (e.target === so) { so.classList.remove('open'); } });
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape' && so.classList.contains('open')) { so.classList.remove('open'); }
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k') { e.preventDefault(); so.classList.add('open'); si.focus(); si.value = ''; sr.innerHTML = ''; }
+    });
+    fetch('/search.xml').then(function(r) { return r.text(); }).then(function(xml) {
+      var parser = new DOMParser();
+      var doc = parser.parseFromString(xml, 'text/xml');
+      doc.querySelectorAll('entry').forEach(function(entry) {
+        searchData.push({
+          title: (entry.querySelector('title') || {}).textContent || '',
+          url: (entry.querySelector('url') || {}).textContent || '',
+          date: (entry.querySelector('published') || {}).textContent || ''
+        });
+      });
+    });
+    si.addEventListener('input', function() {
+      var q = si.value.toLowerCase().trim();
+      if (!q) { sr.innerHTML = ''; return; }
+      var results = searchData.filter(function(item) { return item.title.toLowerCase().indexOf(q) > -1; });
+      if (results.length === 0) {
+        sr.innerHTML = '<div class="search-empty">No results found</div>';
+      } else {
+        sr.innerHTML = results.map(function(item) {
+          return '<a class="search-result-item" href="' + item.url + '">' +
+            '<div class="search-result-title">' + item.title + '</div>' +
+            '<div class="search-result-meta">' + (item.date ? new Date(item.date).toLocaleDateString() : '') + '</div></a>';
+        }).join('');
+      }
+    });
+  }
+
+  var tocLinks = document.querySelectorAll('.toc .toc-link');
+  if (tocLinks.length > 0) {
+    var headings = [];
+    tocLinks.forEach(function(link) {
+      var id = link.getAttribute('href');
+      if (id) {
+        var el = document.getElementById(id.substring(1));
+        if (el) headings.push({ el: el, link: link });
+      }
+    });
+    window.addEventListener('scroll', function() {
+      var scrollY = window.scrollY + 100;
+      var current = null;
+      headings.forEach(function(h) {
+        if (h.el.offsetTop <= scrollY) current = h;
+      });
+      tocLinks.forEach(function(l) { l.classList.remove('active'); });
+      if (current) current.link.classList.add('active');
     });
   }
 })();
