@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark">
+  <head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="author" content="Sam">
+<link rel="icon" href="/img/logo.png">
+<title>WireGuard 自建内网互联 — 多站点组网完整指南</title>
+<meta name="description" content="从零搭建 WireGuard 实现多服务器/多站点内网互联，涵盖点对点、Hub-and-Spoke、Site-to-Site 等多种组网模式及性能优化。">
+<meta name="description" content="从零搭建 WireGuard 实现多服务器&#x2F;多站点内网互联，涵盖点对点、Hub-and-Spoke、Site-to-Site 等多种组网模式及性能优化。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="WireGuard 自建内网互联 — 多站点组网完整指南">
+<meta property="og:url" content="https://sam.xx.kg/post/WireGuard%E8%87%AA%E5%BB%BA%E5%86%85%E7%BD%91%E4%BA%92%E8%81%94/index.html">
+<meta property="og:site_name" content="Sam&#39;s Blog">
+<meta property="og:description" content="从零搭建 WireGuard 实现多服务器&#x2F;多站点内网互联，涵盖点对点、Hub-and-Spoke、Site-to-Site 等多种组网模式及性能优化。">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2026-06-30T08:38:28.000Z">
+<meta property="article:modified_time" content="2026-06-30T08:43:13.903Z">
+<meta property="article:author" content="Sam">
+<meta property="article:tag" content="WireGuard">
+<meta property="article:tag" content="VPN">
+<meta property="article:tag" content="内网穿透">
+<meta property="article:tag" content="组网">
+<meta property="article:tag" content="网络安全">
+<meta name="twitter:card" content="summary">
+<link rel="stylesheet" href="/css/style.css">
+<meta name="generator" content="Hexo 7.3.0"></head>
+  <body class="page-post">
+    <header class="header">
+  <div class="header-inner">
+    <a href="/" class="logo">[Sam&#39;s Blog]</a>
+    <nav class="nav" id="nav">
+      <a href="/">Home</a>
+      <a href="/archives">Archive</a>
+      <a href="/categories">Categories</a>
+      <a href="/tags">Tags</a>
+    </nav>
+    <button class="search-btn" id="searchBtn" aria-label="Search">
+      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+    </button>
+    <button class="menu-toggle" id="menuToggle" aria-label="Toggle menu">
+      <span></span><span></span><span></span>
+    </button>
+    <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme">
+      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+    </button>
+  </div>
+</header>
+    <main class="main"><div class="progress-bar" id="progressBar"></div>
+<div class="post-wrap">
+  <div class="post-main">
+    <article class="post-full">
+      
+      <header class="post-full-header">
+        <h1 class="post-full-title">WireGuard 自建内网互联 — 多站点组网完整指南</h1>
+        <div class="post-full-meta">
+          <time>6月 30, 2026</time>
+          
+          
+            <span class="post-category">代理与网络</span>
+          
+          
+            <span>2.8k words</span>
+            <span>12 min read</span>
+          
+        </div>
+        
+          <div class="post-full-tags">
+            
+              <a class="tag" href="/tags/WireGuard/">#WireGuard</a>
+            
+              <a class="tag" href="/tags/VPN/">#VPN</a>
+            
+              <a class="tag" href="/tags/%E5%86%85%E7%BD%91%E7%A9%BF%E9%80%8F/">#内网穿透</a>
+            
+              <a class="tag" href="/tags/%E7%BB%84%E7%BD%91/">#组网</a>
+            
+              <a class="tag" href="/tags/%E7%BD%91%E7%BB%9C%E5%AE%89%E5%85%A8/">#网络安全</a>
+            
+          </div>
+        
+      </header>
+      <div class="post-content" id="postContent"><blockquote>
+<p><strong>WireGuard</strong> 是目前最先进的 VPN 协议之一，内核级实现，代码量不到 4000 行，配置简单、性能极高。本文从零开始，覆盖点对点、Hub-and-Spoke、Site-to-Site 三种组网模式，实现多台服务器&#x2F;家庭网络的内网互联。</p>
+</blockquote>
+<hr>
+<h2 id="目录"><a href="#目录" class="headerlink" title="目录"></a>目录</h2><ul>
+<li><a href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E9%80%89%E6%8B%A9-wireguard">为什么选择 WireGuard</a></li>
+<li><a href="#%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86">工作原理</a></li>
+<li><a href="#%E5%AE%89%E8%A3%85-wireguard">安装 WireGuard</a></li>
+<li><a href="#%E5%9F%BA%E7%A1%80%E9%85%8D%E7%BD%AE%E7%82%B9%E5%AF%B9%E7%82%B9%E8%BF%9E%E6%8E%A5">基础配置：点对点连接</a></li>
+<li><a href="#hub-and-spoke-%E6%98%9F%E5%9E%8B%E7%BB%84%E7%BD%91">Hub-and-Spoke 星型组网</a></li>
+<li><a href="#site-to-site-%E7%AB%99%E7%82%B9%E5%88%B0%E7%AB%99%E7%82%B9%E7%BB%84%E7%BD%91">Site-to-Site 站点到站点组网</a></li>
+<li><a href="#%E8%B7%AF%E7%94%B1%E8%BD%AC%E5%8F%91%E4%B8%8E-nat">路由转发与 NAT</a></li>
+<li><a href="#%E6%80%A7%E8%83%BD%E8%B0%83%E4%BC%98">性能调优</a></li>
+<li><a href="#%E5%AE%89%E5%85%A8%E5%8A%A0%E5%9B%BA">安全加固</a></li>
+<li><a href="#pve-92-sdn--wireguard-%E9%9B%86%E6%88%90">PVE 9.2 SDN + WireGuard 集成</a></li>
+<li><a href="#%E5%B8%B8%E7%94%A8%E7%AE%A1%E7%90%86%E5%91%BD%E4%BB%A4">常用管理命令</a></li>
+<li><a href="#%E6%8E%92%E9%94%99%E6%8C%87%E5%8D%97">排错指南</a></li>
+</ul>
+<hr>
+<h2 id="为什么选择-WireGuard"><a href="#为什么选择-WireGuard" class="headerlink" title="为什么选择 WireGuard"></a>为什么选择 WireGuard</h2><table>
+<thead>
+<tr>
+<th>特性</th>
+<th>WireGuard</th>
+<th>OpenVPN</th>
+<th>IPsec</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>代码量</strong></td>
+<td>~4000 行</td>
+<td>~60万行</td>
+<td>极复杂</td>
+</tr>
+<tr>
+<td><strong>延迟</strong></td>
+<td>极低（内核态）</td>
+<td>较高（用户态）</td>
+<td>中等</td>
+</tr>
+<tr>
+<td><strong>配置</strong></td>
+<td>1 个文件，几分钟</td>
+<td>证书链复杂</td>
+<td>繁琐</td>
+</tr>
+<tr>
+<td><strong>加密</strong></td>
+<td>Curve25519 + ChaCha20 + Poly1305</td>
+<td>OpenSSL</td>
+<td>多种可选</td>
+</tr>
+<tr>
+<td><strong>漫游</strong></td>
+<td>原生支持</td>
+<td>需额外配置</td>
+<td>有限</td>
+</tr>
+<tr>
+<td><strong>内核集成</strong></td>
+<td>Linux 5.6+ 内置</td>
+<td>否</td>
+<td>部分</td>
+</tr>
+</tbody></table>
+<p>WireGuard 的核心优势：</p>
+<ul>
+<li><strong>内核级</strong>：直接在 Linux 内核中运行，性能远超用户态 VPN</li>
+<li><strong>无连接</strong>：无传统握手协议，对端离线不影响本端配置</li>
+<li><strong>加密默认</strong>：完美前向保密，所有流量默认加密</li>
+<li><strong>漫游友好</strong>：对端 IP 变化自动重连</li>
+</ul>
+<hr>
+<h2 id="工作原理"><a href="#工作原理" class="headerlink" title="工作原理"></a>工作原理</h2><p>WireGuard 通过 <strong>UDP</strong> 传输加密数据包。每个节点有一个私钥和公钥，通信前通过公钥认证 + 加密。</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">[节点 A: 10.0.0.1/24] ←--- UDP 加密隧道 ---→ [节点 B: 10.0.0.2/24]</span><br><span class="line">      私钥: aAA...                 私钥: bBB...</span><br><span class="line">      公钥: aPUB...                 公钥: bPUB...</span><br></pre></td></tr></table></figure>
+
+<p>术语解释：</p>
+<table>
+<thead>
+<tr>
+<th>术语</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Interface</strong></td>
+<td>本地 WireGuard 网卡配置（IP、端口、私钥）</td>
+</tr>
+<tr>
+<td><strong>Peer</strong></td>
+<td>对端节点配置（公钥、允许 IP、端点地址）</td>
+</tr>
+<tr>
+<td><strong>AllowedIPs</strong></td>
+<td>哪些目标 IP 走 WireGuard 隧道</td>
+</tr>
+<tr>
+<td><strong>Endpoint</strong></td>
+<td>对端的公网 IP:端口</td>
+</tr>
+<tr>
+<td><strong>PersistentKeepalive</strong></td>
+<td>保活间隔（NAT 场景必备）</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="安装-WireGuard"><a href="#安装-WireGuard" class="headerlink" title="安装 WireGuard"></a>安装 WireGuard</h2><h3 id="Linux（Debian-Ubuntu）"><a href="#Linux（Debian-Ubuntu）" class="headerlink" title="Linux（Debian &#x2F; Ubuntu）"></a>Linux（Debian &#x2F; Ubuntu）</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># WireGuard 已内置于 Linux 5.6+ 内核</span></span><br><span class="line"><span class="comment"># 只需安装用户态工具</span></span><br><span class="line">apt update</span><br><span class="line">apt install -y wireguard</span><br><span class="line"></span><br><span class="line"><span class="comment"># 确认安装</span></span><br><span class="line">wg --version</span><br></pre></td></tr></table></figure>
+
+<h3 id="Linux（CentOS-Rocky-Linux）"><a href="#Linux（CentOS-Rocky-Linux）" class="headerlink" title="Linux（CentOS &#x2F; Rocky Linux）"></a>Linux（CentOS &#x2F; Rocky Linux）</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">dnf install -y epel-release</span><br><span class="line">dnf install -y wireguard-tools</span><br></pre></td></tr></table></figure>
+
+<h3 id="macOS"><a href="#macOS" class="headerlink" title="macOS"></a>macOS</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">brew install wireguard-tools</span><br></pre></td></tr></table></figure>
+
+<h3 id="Windows"><a href="#Windows" class="headerlink" title="Windows"></a>Windows</h3><p>下载 <a target="_blank" rel="noopener" href="https://www.wireguard.com/install/">WireGuard Windows 客户端</a> 安装即可。</p>
+<hr>
+<h2 id="基础配置：点对点连接"><a href="#基础配置：点对点连接" class="headerlink" title="基础配置：点对点连接"></a>基础配置：点对点连接</h2><p>这是最简单的模式，两台服务器直接互联。</p>
+<h3 id="生成密钥对"><a href="#生成密钥对" class="headerlink" title="生成密钥对"></a>生成密钥对</h3><p>在 <strong>两台机器上分别执行</strong>：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 生成私钥</span></span><br><span class="line">wg genkey | <span class="built_in">tee</span> privatekey</span><br><span class="line"></span><br><span class="line"><span class="comment"># 从私钥导出公钥</span></span><br><span class="line"><span class="built_in">cat</span> privatekey | wg pubkey | <span class="built_in">tee</span> publickey</span><br></pre></td></tr></table></figure>
+
+<h3 id="节点-A-配置（服务器-A，公网-IP-1-2-3-4）"><a href="#节点-A-配置（服务器-A，公网-IP-1-2-3-4）" class="headerlink" title="节点 A 配置（服务器 A，公网 IP: 1.2.3.4）"></a>节点 A 配置（服务器 A，公网 IP: 1.2.3.4）</h3><p>创建 <code>/etc/wireguard/wg0.conf</code>：</p>
+<figure class="highlight ini"><table><tr><td class="code"><pre><span class="line"><span class="section">[Interface]</span></span><br><span class="line"><span class="attr">Address</span> = <span class="number">10.0</span>.<span class="number">0.1</span>/<span class="number">24</span></span><br><span class="line"><span class="attr">ListenPort</span> = <span class="number">51820</span></span><br><span class="line"><span class="attr">PrivateKey</span> = aAA...（节点 A 的私钥）</span><br><span class="line"></span><br><span class="line"><span class="comment"># 可选 MTU 优化</span></span><br><span class="line"><span class="attr">MTU</span> = <span class="number">1420</span></span><br><span class="line"></span><br><span class="line"><span class="section">[Peer]</span></span><br><span class="line"><span class="attr">PublicKey</span> = bPUB...（节点 B 的公钥）</span><br><span class="line"><span class="attr">AllowedIPs</span> = <span class="number">10.0</span>.<span class="number">0.2</span>/<span class="number">32</span></span><br><span class="line"><span class="attr">Endpoint</span> = <span class="number">5.6</span>.<span class="number">7.8</span>:<span class="number">51820</span></span><br><span class="line"><span class="attr">PersistentKeepalive</span> = <span class="number">25</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="节点-B-配置（服务器-B，公网-IP-5-6-7-8）"><a href="#节点-B-配置（服务器-B，公网-IP-5-6-7-8）" class="headerlink" title="节点 B 配置（服务器 B，公网 IP: 5.6.7.8）"></a>节点 B 配置（服务器 B，公网 IP: 5.6.7.8）</h3><p>创建 <code>/etc/wireguard/wg0.conf</code>：</p>
+<figure class="highlight ini"><table><tr><td class="code"><pre><span class="line"><span class="section">[Interface]</span></span><br><span class="line"><span class="attr">Address</span> = <span class="number">10.0</span>.<span class="number">0.2</span>/<span class="number">24</span></span><br><span class="line"><span class="attr">ListenPort</span> = <span class="number">51820</span></span><br><span class="line"><span class="attr">PrivateKey</span> = bBB...（节点 B 的私钥）</span><br><span class="line"><span class="attr">MTU</span> = <span class="number">1420</span></span><br><span class="line"></span><br><span class="line"><span class="section">[Peer]</span></span><br><span class="line"><span class="attr">PublicKey</span> = aPUB...（节点 A 的公钥）</span><br><span class="line"><span class="attr">AllowedIPs</span> = <span class="number">10.0</span>.<span class="number">0.1</span>/<span class="number">32</span></span><br><span class="line"><span class="attr">Endpoint</span> = <span class="number">1.2</span>.<span class="number">3.4</span>:<span class="number">51820</span></span><br><span class="line"><span class="attr">PersistentKeepalive</span> = <span class="number">25</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="启动-WireGuard"><a href="#启动-WireGuard" class="headerlink" title="启动 WireGuard"></a>启动 WireGuard</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 启动接口</span></span><br><span class="line">wg-quick up wg0</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看状态</span></span><br><span class="line">wg show</span><br><span class="line"></span><br><span class="line"><span class="comment"># 设置开机自启</span></span><br><span class="line">systemctl <span class="built_in">enable</span> wg-quick@wg0</span><br></pre></td></tr></table></figure>
+
+<h3 id="测试连通性"><a href="#测试连通性" class="headerlink" title="测试连通性"></a>测试连通性</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">ping 10.0.0.2   <span class="comment"># 在节点 A 上</span></span><br><span class="line">ping 10.0.0.1   <span class="comment"># 在节点 B 上</span></span><br></pre></td></tr></table></figure>
+
+<p>如果 ping 通，点对点连接建立成功。</p>
+<hr>
+<h2 id="Hub-and-Spoke-星型组网"><a href="#Hub-and-Spoke-星型组网" class="headerlink" title="Hub-and-Spoke 星型组网"></a>Hub-and-Spoke 星型组网</h2><p>用一台公网服务器作为 Hub，多台内网&#x2F;客户端机器通过它互联。这是最常用的模式，适合多 VPS + 家庭内网组网。</p>
+<h3 id="拓扑"><a href="#拓扑" class="headerlink" title="拓扑"></a>拓扑</h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">               [Hub 服务器]</span><br><span class="line">              公网 IP: 1.2.3.4</span><br><span class="line">              虚拟 IP: 10.0.0.1/24</span><br><span class="line">              ┌─────────────┐</span><br><span class="line">              │  10.0.0.1   │</span><br><span class="line">              └──────┬──────┘</span><br><span class="line">         ┌───────────┼───────────┐</span><br><span class="line">         │           │           │</span><br><span class="line">[VPS 香港]    [家庭 NAS]     [手机/笔记本]</span><br><span class="line">10.0.0.2      10.0.0.3      10.0.0.100</span><br></pre></td></tr></table></figure>
+
+<h3 id="Hub-配置"><a href="#Hub-配置" class="headerlink" title="Hub 配置"></a>Hub 配置</h3><figure class="highlight ini"><table><tr><td class="code"><pre><span class="line"><span class="section">[Interface]</span></span><br><span class="line"><span class="attr">Address</span> = <span class="number">10.0</span>.<span class="number">0.1</span>/<span class="number">24</span></span><br><span class="line"><span class="attr">ListenPort</span> = <span class="number">51820</span></span><br><span class="line"><span class="attr">PrivateKey</span> = hub私钥</span><br><span class="line"><span class="attr">MTU</span> = <span class="number">1420</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 开启 IP 转发（重要）</span></span><br><span class="line"><span class="comment"># 同时需要在 sysctl 中设置 net.ipv4.ip_forward = 1</span></span><br><span class="line"></span><br><span class="line"><span class="section">[Peer]</span></span><br><span class="line"><span class="comment"># VPS 香港</span></span><br><span class="line"><span class="attr">PublicKey</span> = hk公钥</span><br><span class="line"><span class="attr">AllowedIPs</span> = <span class="number">10.0</span>.<span class="number">0.2</span>/<span class="number">32</span></span><br><span class="line"></span><br><span class="line"><span class="section">[Peer]</span></span><br><span class="line"><span class="comment"># 家庭 NAS</span></span><br><span class="line"><span class="attr">PublicKey</span> = nas公钥</span><br><span class="line"><span class="attr">AllowedIPs</span> = <span class="number">10.0</span>.<span class="number">0.3</span>/<span class="number">32</span>, <span class="number">192.168</span>.<span class="number">1.0</span>/<span class="number">24</span></span><br><span class="line"></span><br><span class="line"><span class="section">[Peer]</span></span><br><span class="line"><span class="comment"># 手机/笔记本</span></span><br><span class="line"><span class="attr">PublicKey</span> = mobile公钥</span><br><span class="line"><span class="attr">AllowedIPs</span> = <span class="number">10.0</span>.<span class="number">0.100</span>/<span class="number">32</span></span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>Hub 的 <code>AllowedIPs</code> 填写每个 Spoke 的虚拟 IP。如果 Spoke 后面还有局域网，一并加上（如 <code>192.168.1.0/24</code>）。</p>
+</blockquote>
+<h3 id="Spoke-配置（以-VPS-香港为例）"><a href="#Spoke-配置（以-VPS-香港为例）" class="headerlink" title="Spoke 配置（以 VPS 香港为例）"></a>Spoke 配置（以 VPS 香港为例）</h3><figure class="highlight ini"><table><tr><td class="code"><pre><span class="line"><span class="section">[Interface]</span></span><br><span class="line"><span class="attr">Address</span> = <span class="number">10.0</span>.<span class="number">0.2</span>/<span class="number">24</span></span><br><span class="line"><span class="attr">PrivateKey</span> = hk私钥</span><br><span class="line"><span class="attr">MTU</span> = <span class="number">1420</span></span><br><span class="line"></span><br><span class="line"><span class="section">[Peer]</span></span><br><span class="line"><span class="attr">PublicKey</span> = hub公钥</span><br><span class="line"><span class="attr">AllowedIPs</span> = <span class="number">10.0</span>.<span class="number">0.0</span>/<span class="number">24</span></span><br><span class="line"><span class="attr">Endpoint</span> = <span class="number">1.2</span>.<span class="number">3.4</span>:<span class="number">51820</span></span><br><span class="line"><span class="attr">PersistentKeepalive</span> = <span class="number">25</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="开启-IP-转发（所有节点）"><a href="#开启-IP-转发（所有节点）" class="headerlink" title="开启 IP 转发（所有节点）"></a>开启 IP 转发（所有节点）</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">echo</span> <span class="string">&quot;net.ipv4.ip_forward = 1&quot;</span> &gt;&gt; /etc/sysctl.conf</span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;net.ipv6.conf.all.forwarding = 1&quot;</span> &gt;&gt; /etc/sysctl.conf</span><br><span class="line">sysctl -p</span><br></pre></td></tr></table></figure>
+
+<h3 id="Spoke-互通"><a href="#Spoke-互通" class="headerlink" title="Spoke 互通"></a>Spoke 互通</h3><p>通过 Hub 转发，香港 VPS 可以直接访问家庭 NAS 的内网 IP：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 在 VPS 香港上</span></span><br><span class="line">ping 10.0.0.3       <span class="comment"># 访问家庭 NAS</span></span><br><span class="line">ping 192.168.1.100   <span class="comment"># 访问 NAS 后的局域网设备（如果配置了路由）</span></span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="Site-to-Site-站点到站点组网"><a href="#Site-to-Site-站点到站点组网" class="headerlink" title="Site-to-Site 站点到站点组网"></a>Site-to-Site 站点到站点组网</h2><p>将两个局域网通过 WireGuard 打通，实现异地局域网互联。</p>
+<h3 id="拓扑-1"><a href="#拓扑-1" class="headerlink" title="拓扑"></a>拓扑</h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">[Site A: 上海]                    [Site B: 香港]</span><br><span class="line">┌──────────────┐                ┌──────────────┐</span><br><span class="line">│ PC-A:        │                │ PC-B:         │</span><br><span class="line">│ 192.168.1.10 │                │ 192.168.2.20  │</span><br><span class="line">│              │   WireGuard    │              │</span><br><span class="line">│ Router-A     │◄─────────────►│ Router-B      │</span><br><span class="line">│ 192.168.1.1  │   10.0.0.1     │ 192.168.2.1   │</span><br><span class="line">│ WG: 10.0.0.1 │     ←→        │ WG: 10.0.0.2  │</span><br><span class="line">└──────────────┘                └──────────────┘</span><br></pre></td></tr></table></figure>
+
+<h3 id="Site-A-配置"><a href="#Site-A-配置" class="headerlink" title="Site A 配置"></a>Site A 配置</h3><figure class="highlight ini"><table><tr><td class="code"><pre><span class="line"><span class="section">[Interface]</span></span><br><span class="line"><span class="attr">Address</span> = <span class="number">10.0</span>.<span class="number">0.1</span>/<span class="number">24</span></span><br><span class="line"><span class="attr">ListenPort</span> = <span class="number">51820</span></span><br><span class="line"><span class="attr">PrivateKey</span> = siteA私钥</span><br><span class="line"><span class="attr">MTU</span> = <span class="number">1420</span></span><br><span class="line"><span class="attr">PostUp</span> = iptables -A FORWARD -i wg0 -j ACCEPT<span class="comment">; iptables -A FORWARD -o wg0 -j ACCEPT; iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE</span></span><br><span class="line"><span class="attr">PostDown</span> = iptables -D FORWARD -i wg0 -j ACCEPT<span class="comment">; iptables -D FORWARD -o wg0 -j ACCEPT; iptables -t nat -D POSTROUTING -o eth0 -j MASQUERADE</span></span><br><span class="line"></span><br><span class="line"><span class="section">[Peer]</span></span><br><span class="line"><span class="attr">PublicKey</span> = siteB公钥</span><br><span class="line"><span class="attr">AllowedIPs</span> = <span class="number">10.0</span>.<span class="number">0.2</span>/<span class="number">32</span>, <span class="number">192.168</span>.<span class="number">2.0</span>/<span class="number">24</span></span><br><span class="line"><span class="attr">Endpoint</span> = siteB公网IP:<span class="number">51820</span></span><br><span class="line"><span class="attr">PersistentKeepalive</span> = <span class="number">25</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="Site-B-配置"><a href="#Site-B-配置" class="headerlink" title="Site B 配置"></a>Site B 配置</h3><figure class="highlight ini"><table><tr><td class="code"><pre><span class="line"><span class="section">[Interface]</span></span><br><span class="line"><span class="attr">Address</span> = <span class="number">10.0</span>.<span class="number">0.2</span>/<span class="number">24</span></span><br><span class="line"><span class="attr">ListenPort</span> = <span class="number">51820</span></span><br><span class="line"><span class="attr">PrivateKey</span> = siteB私钥</span><br><span class="line"><span class="attr">MTU</span> = <span class="number">1420</span></span><br><span class="line"><span class="attr">PostUp</span> = iptables -A FORWARD -i wg0 -j ACCEPT<span class="comment">; iptables -A FORWARD -o wg0 -j ACCEPT; iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE</span></span><br><span class="line"><span class="attr">PostDown</span> = iptables -D FORWARD -i wg0 -j ACCEPT<span class="comment">; iptables -D FORWARD -o wg0 -j ACCEPT; iptables -t nat -D POSTROUTING -o eth0 -j MASQUERADE</span></span><br><span class="line"></span><br><span class="line"><span class="section">[Peer]</span></span><br><span class="line"><span class="attr">PublicKey</span> = siteA公钥</span><br><span class="line"><span class="attr">AllowedIPs</span> = <span class="number">10.0</span>.<span class="number">0.1</span>/<span class="number">32</span>, <span class="number">192.168</span>.<span class="number">1.0</span>/<span class="number">24</span></span><br><span class="line"><span class="attr">Endpoint</span> = siteA公网IP:<span class="number">51820</span></span><br><span class="line"><span class="attr">PersistentKeepalive</span> = <span class="number">25</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="路由表同步"><a href="#路由表同步" class="headerlink" title="路由表同步"></a>路由表同步</h3><p>在 <strong>Site A 的局域网设备</strong> 上，添加去往 Site B 的路由：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 在 PC-A 上</span></span><br><span class="line">ip route add 192.168.2.0/24 via 192.168.1.1</span><br></pre></td></tr></table></figure>
+
+<p>或在路由器上添加静态路由，指向运行 WireGuard 的网关。</p>
+<h3 id="验证"><a href="#验证" class="headerlink" title="验证"></a>验证</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 在 Site A 的 PC-A 上</span></span><br><span class="line">ping 192.168.2.20     <span class="comment"># 直通 Site B 的内网设备</span></span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="路由转发与-NAT"><a href="#路由转发与-NAT" class="headerlink" title="路由转发与 NAT"></a>路由转发与 NAT</h2><h3 id="AllowedIPs-详解"><a href="#AllowedIPs-详解" class="headerlink" title="AllowedIPs 详解"></a>AllowedIPs 详解</h3><p><code>AllowedIPs</code> 既是对端的路由规则，也是防火墙规则：</p>
+<table>
+<thead>
+<tr>
+<th>写法</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>10.0.0.2/32</code></td>
+<td>仅允许对端 WireGuard IP</td>
+</tr>
+<tr>
+<td><code>10.0.0.0/24</code></td>
+<td>整个 WireGuard 子网走隧道</td>
+</tr>
+<tr>
+<td><code>10.0.0.2/32, 192.168.1.0/24</code></td>
+<td>对端 IP + 对端局域网</td>
+</tr>
+<tr>
+<td><code>0.0.0.0/0</code></td>
+<td>全流量走隧道（VPN 模式）</td>
+</tr>
+</tbody></table>
+<h3 id="全流量-VPN-模式（远程办公）"><a href="#全流量-VPN-模式（远程办公）" class="headerlink" title="全流量 VPN 模式（远程办公）"></a>全流量 VPN 模式（远程办公）</h3><figure class="highlight ini"><table><tr><td class="code"><pre><span class="line"><span class="section">[Interface]</span></span><br><span class="line"><span class="attr">Address</span> = <span class="number">10.0</span>.<span class="number">0.100</span>/<span class="number">24</span></span><br><span class="line"><span class="attr">DNS</span> = <span class="number">10.0</span>.<span class="number">0.1</span></span><br><span class="line"><span class="attr">PrivateKey</span> = 客户端私钥</span><br><span class="line"></span><br><span class="line"><span class="section">[Peer]</span></span><br><span class="line"><span class="attr">PublicKey</span> = 服务器公钥</span><br><span class="line"><span class="attr">AllowedIPs</span> = <span class="number">0.0</span>.<span class="number">0.0</span>/<span class="number">0</span>      <span class="comment"># 所有流量走隧道路由</span></span><br><span class="line"><span class="attr">Endpoint</span> = 服务器IP:<span class="number">51820</span></span><br><span class="line"><span class="attr">PersistentKeepalive</span> = <span class="number">25</span></span><br></pre></td></tr></table></figure>
+
+<p>结合 <code>PostUp</code> 添加 NAT 规则，让客户端流量通过服务器上网。</p>
+<h3 id="Docker-环境下的配置"><a href="#Docker-环境下的配置" class="headerlink" title="Docker 环境下的配置"></a>Docker 环境下的配置</h3><p>Docker 默认创建的 <code>iptables</code> 规则可能干扰 WireGuard。解决方案：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 在 wg0.conf 中添加 PostUp 规则</span></span><br><span class="line">PostUp = iptables -I FORWARD -i wg0 -j ACCEPT</span><br><span class="line">PostUp = iptables -I FORWARD -o wg0 -j ACCEPT</span><br><span class="line">PostUp = iptables -t nat -I POSTROUTING -o wg0 -j MASQUERADE</span><br><span class="line"></span><br><span class="line"><span class="comment"># 或者让 WireGuard 容器使用 host 网络模式</span></span><br></pre></td></tr></table></figure>
+
+<p>或者使用 <code>wg-quick</code> 的 <code>Table = auto</code> 功能自动管理路由表。</p>
+<hr>
+<h2 id="性能调优"><a href="#性能调优" class="headerlink" title="性能调优"></a>性能调优</h2><h3 id="MTU-优化"><a href="#MTU-优化" class="headerlink" title="MTU 优化"></a>MTU 优化</h3><p>WireGuard 默认 MTU 为 1420，可根据链路调整：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 测试不同 MTU（在两端执行）</span></span><br><span class="line">ping -M <span class="keyword">do</span> -s 1472 -c 5 10.0.0.2   <span class="comment"># 有线网络</span></span><br><span class="line">ping -M <span class="keyword">do</span> -s 1412 -c 5 10.0.0.2   <span class="comment"># PPPoE</span></span><br><span class="line">ping -M <span class="keyword">do</span> -s 1372 -c 5 10.0.0.2   <span class="comment"># 蜂窝网络</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 在 [Interface] 中设置</span></span><br><span class="line">MTU = 1420</span><br></pre></td></tr></table></figure>
+
+<table>
+<thead>
+<tr>
+<th>网络类型</th>
+<th>推荐 MTU</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>以太网（无额外封装）</td>
+<td>1420</td>
+</tr>
+<tr>
+<td>PPPoE（ADSL 拨号）</td>
+<td>1412</td>
+</tr>
+<tr>
+<td>4G &#x2F; 5G 蜂窝</td>
+<td>1372</td>
+</tr>
+<tr>
+<td>叠加 IPsec</td>
+<td>1280</td>
+</tr>
+</tbody></table>
+<h3 id="多队列"><a href="#多队列" class="headerlink" title="多队列"></a>多队列</h3><p>多核 CPU 启用多队列：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">ethtool -L eth0 combined 4     <span class="comment"># 物理网卡多队列</span></span><br><span class="line"><span class="comment"># WireGuard 自动利用多队列（内核态优势）</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="内核参数优化"><a href="#内核参数优化" class="headerlink" title="内核参数优化"></a>内核参数优化</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># /etc/sysctl.d/99-wireguard.conf</span></span><br><span class="line">net.core.rmem_default = 262144</span><br><span class="line">net.core.wmem_default = 262144</span><br><span class="line">net.core.rmem_max = 4194304</span><br><span class="line">net.core.wmem_max = 4194304</span><br><span class="line">net.ipv4.conf.all.rp_filter = 0</span><br><span class="line">net.ipv4.conf.default.rp_filter = 0</span><br><span class="line">net.ipv4.tcp_congestion_control = bbr</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="安全加固"><a href="#安全加固" class="headerlink" title="安全加固"></a>安全加固</h2><h3 id="1-防火墙规则"><a href="#1-防火墙规则" class="headerlink" title="1. 防火墙规则"></a>1. 防火墙规则</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 只放行 WireGuard 端口</span></span><br><span class="line">iptables -A INPUT -p udp --dport 51820 -j ACCEPT</span><br><span class="line">iptables -A INPUT -i wg0 -j ACCEPT</span><br><span class="line">iptables -A FORWARD -i wg0 -j ACCEPT</span><br><span class="line"></span><br><span class="line"><span class="comment"># 或者使用 ufw</span></span><br><span class="line">ufw allow 51820/udp</span><br></pre></td></tr></table></figure>
+
+<h3 id="2-限制-Peer-访问"><a href="#2-限制-Peer-访问" class="headerlink" title="2. 限制 Peer 访问"></a>2. 限制 Peer 访问</h3><p>在 <code>AllowedIPs</code> 中仅放行必要的 IP 段，不要滥用 <code>0.0.0.0/0</code>。</p>
+<h3 id="3-密钥管理"><a href="#3-密钥管理" class="headerlink" title="3. 密钥管理"></a>3. 密钥管理</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 定期更换密钥</span></span><br><span class="line">wg genkey | <span class="built_in">tee</span> new_privatekey</span><br><span class="line"><span class="built_in">cat</span> new_privatekey | wg pubkey</span><br><span class="line"></span><br><span class="line"><span class="comment"># 更新配置后重启</span></span><br><span class="line">wg setconf wg0 /etc/wireguard/wg0.conf</span><br></pre></td></tr></table></figure>
+
+<h3 id="4-使用-Pre-shared-Keys（PSK）"><a href="#4-使用-Pre-shared-Keys（PSK）" class="headerlink" title="4. 使用 Pre-shared Keys（PSK）"></a>4. 使用 Pre-shared Keys（PSK）</h3><p>在配置中添加对称密钥，增加一层加密：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 生成 PSK</span></span><br><span class="line">wg genpsk &gt; psk</span><br><span class="line"></span><br><span class="line"><span class="comment"># Peer 中引用</span></span><br><span class="line">[Peer]</span><br><span class="line">PresharedKey = 上面生成的 PSK</span><br></pre></td></tr></table></figure>
+
+<h3 id="5-日志监控"><a href="#5-日志监控" class="headerlink" title="5. 日志监控"></a>5. 日志监控</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 查看 WireGuard 日志（内核级）</span></span><br><span class="line">modprobe wireguard-dynamic-debug</span><br><span class="line"><span class="built_in">echo</span> module wireguard +p &gt; /sys/kernel/debug/dynamic_debug/control</span><br><span class="line">dmesg -w | grep wireguard</span><br><span class="line"></span><br><span class="line"><span class="comment"># 或使用 systemd journal</span></span><br><span class="line">journalctl -u wg-quick@wg0 -f</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="PVE-9-2-SDN-WireGuard-集成"><a href="#PVE-9-2-SDN-WireGuard-集成" class="headerlink" title="PVE 9.2 SDN + WireGuard 集成"></a>PVE 9.2 SDN + WireGuard 集成</h2><p>PVE 9.2 新增 <strong>WireGuard Fabric</strong> 支持，可在 Proxmox WebUI 中直接配置 WireGuard 隧道作为 SDN 底层网络。</p>
+<h3 id="配置步骤"><a href="#配置步骤" class="headerlink" title="配置步骤"></a>配置步骤</h3><ol>
+<li>Datacenter → <strong>SDN</strong> → <strong>Fabrics</strong> → <strong>Add</strong> → <code>WireGuard</code></li>
+<li>配置 WireGuard Fabric：<ul>
+<li>端口：<code>51820</code></li>
+<li>节点列表：选择参与隧道的节点</li>
+</ul>
+</li>
+<li>系统自动生成每个节点的密钥对</li>
+<li>将 Fabric 关联到 VXLAN Zone，实现跨节点虚拟机二层互通</li>
+</ol>
+<h3 id="优势"><a href="#优势" class="headerlink" title="优势"></a>优势</h3><ul>
+<li>WebUI 集中管理，无需手动编辑配置文件</li>
+<li>自动密钥轮换</li>
+<li>与 PVE SDN 生态（VXLAN、EVPN）深度集成</li>
+<li>加密的节点间迁移网络</li>
+</ul>
+<hr>
+<h2 id="常用管理命令"><a href="#常用管理命令" class="headerlink" title="常用管理命令"></a>常用管理命令</h2><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 启动/停止/重启</span></span><br><span class="line">wg-quick up wg0</span><br><span class="line">wg-quick down wg0</span><br><span class="line">systemctl restart wg-quick@wg0</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看状态</span></span><br><span class="line">wg show</span><br><span class="line">wg show wg0</span><br><span class="line">wg showconf wg0</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看流量统计</span></span><br><span class="line">wg show wg0 transfer</span><br><span class="line"></span><br><span class="line"><span class="comment"># 实时监控</span></span><br><span class="line">watch -n1 wg show</span><br><span class="line"></span><br><span class="line"><span class="comment"># 更新 Peer 配置（不重启）</span></span><br><span class="line">wg <span class="built_in">set</span> wg0 peer &lt;公钥&gt; endpoint &lt;新IP:端口&gt;</span><br><span class="line"></span><br><span class="line"><span class="comment"># 删除 Peer</span></span><br><span class="line">wg <span class="built_in">set</span> wg0 peer &lt;公钥&gt; remove</span><br></pre></td></tr></table></figure>
+
+<h3 id="systemd-服务管理"><a href="#systemd-服务管理" class="headerlink" title="systemd 服务管理"></a>systemd 服务管理</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">systemctl <span class="built_in">enable</span> wg-quick@wg0   <span class="comment"># 开机自启</span></span><br><span class="line">systemctl status wg-quick@wg0   <span class="comment"># 查看状态</span></span><br><span class="line">journalctl -u wg-quick@wg0 -f   <span class="comment"># 查看日志</span></span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="排错指南"><a href="#排错指南" class="headerlink" title="排错指南"></a>排错指南</h2><h3 id="Q1：wg-show-显示对端一直没握手（latest-handshake-很久）"><a href="#Q1：wg-show-显示对端一直没握手（latest-handshake-很久）" class="headerlink" title="Q1：wg show 显示对端一直没握手（latest handshake 很久）"></a>Q1：wg show 显示对端一直没握手（latest handshake 很久）</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 检查防火墙是否放行 UDP 51820</span></span><br><span class="line">iptables -L -n | grep 51820</span><br><span class="line"></span><br><span class="line"><span class="comment"># 检查对端 Endpoint 配置是否正确</span></span><br><span class="line"><span class="comment"># 确认公网 IP 可达</span></span><br><span class="line">ping 对端公网IP</span><br><span class="line"></span><br><span class="line"><span class="comment"># 检查 NAT 环境是否需 PersistentKeepalive</span></span><br><span class="line"><span class="comment"># 两端都设置 PersistentKeepalive = 25</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="Q2：能-Ping-通虚拟-IP，但访问对端局域网不通"><a href="#Q2：能-Ping-通虚拟-IP，但访问对端局域网不通" class="headerlink" title="Q2：能 Ping 通虚拟 IP，但访问对端局域网不通"></a>Q2：能 Ping 通虚拟 IP，但访问对端局域网不通</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 检查 IP 转发是否开启</span></span><br><span class="line">sysctl net.ipv4.ip_forward</span><br><span class="line"></span><br><span class="line"><span class="comment"># 检查 iptables FORWARD 规则</span></span><br><span class="line">iptables -L FORWARD -n</span><br><span class="line"></span><br><span class="line"><span class="comment"># 检查 AllowedIPs 是否包含对端局域网段</span></span><br><span class="line"><span class="comment"># 例如：AllowedIPs = 10.0.0.2/32, 192.168.2.0/24</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 检查对端是否需要添加回程路由</span></span><br><span class="line"><span class="comment"># Site B 也需要在路由表中知道 Site A 的局域网段</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="Q3：速度慢"><a href="#Q3：速度慢" class="headerlink" title="Q3：速度慢"></a>Q3：速度慢</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 测试裸 TCP 速度（先排除 WireGuard）</span></span><br><span class="line">iperf3 -c 对端IP -p 5201</span><br><span class="line"></span><br><span class="line"><span class="comment"># 测试 WireGuard 隧道速度</span></span><br><span class="line">iperf3 -c 10.0.0.2 -p 5201</span><br><span class="line"></span><br><span class="line"><span class="comment"># 检查 MTU</span></span><br><span class="line"><span class="comment"># 尝试降低 MTU 到 1280</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 检查 CPU 是否瓶颈</span></span><br><span class="line"><span class="comment"># WireGuard 是 CPU 密集型，弱 CPU 建议单条隧道</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="Q4：断线重连慢"><a href="#Q4：断线重连慢" class="headerlink" title="Q4：断线重连慢"></a>Q4：断线重连慢</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 降低 PersistentKeepalive 间隔</span></span><br><span class="line">PersistentKeepalive = 10</span><br><span class="line"></span><br><span class="line"><span class="comment"># 检查 UDP 超时设置</span></span><br><span class="line"><span class="comment"># 某些运营商 UDP 超时短（如移动宽带）</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="Q5：Docker-环境中-WireGuard-不工作"><a href="#Q5：Docker-环境中-WireGuard-不工作" class="headerlink" title="Q5：Docker 环境中 WireGuard 不工作"></a>Q5：Docker 环境中 WireGuard 不工作</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 方案一：使用 host 网络模式</span></span><br><span class="line">docker run --network host ...</span><br><span class="line"></span><br><span class="line"><span class="comment"># 方案二：开放必要端口</span></span><br><span class="line"><span class="comment"># 注意 Docker 的 iptables 规则会覆盖 WireGuard 的</span></span><br><span class="line"><span class="comment"># 在 PostUp 中手动插入规则到 DOCKER-USER 链</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 方案三：将 WireGuard 运行在宿主机，而非容器内</span></span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>WireGuard 的组网模式可以概括为：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">点对点 → 两台机器直接互联（基础）</span><br><span class="line">      ↓</span><br><span class="line">Hub-and-Spoke → 中心节点转发，多 Spoke 互联（最常用）</span><br><span class="line">      ↓</span><br><span class="line">Site-to-Site → 两个局域网全互联（生产环境）</span><br><span class="line">      ↓</span><br><span class="line">PVE SDN WireGuard → 虚拟化平台隧道网络（高级）</span><br></pre></td></tr></table></figure>
+
+<p>选择指南：</p>
+<table>
+<thead>
+<tr>
+<th>场景</th>
+<th>推荐模式</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>两台 VPS 互联</td>
+<td>点对点</td>
+</tr>
+<tr>
+<td>多台 VPS + 家庭设备</td>
+<td>Hub-and-Spoke</td>
+</tr>
+<tr>
+<td>分公司&#x2F;异地办公室</td>
+<td>Site-to-Site</td>
+</tr>
+<tr>
+<td>PVE 集群跨公网 SDN</td>
+<td>PVE 9.2 WireGuard Fabric</td>
+</tr>
+</tbody></table>
+<p>WireGuard 用极简的设计实现了极高的性能和安全性。配合 PVE 9.2 的原生 SDN 集成，可以轻松构建跨公网的虚拟化集群网络。</p>
+<hr>
+<p><em>本文最后更新于 2026 年 6 月，对应 WireGuard 1.0 稳定版。</em></p>
+</div>
+      
+        <nav class="post-nav">
+          
+          
+            <a class="next" href="/post/PVE9-2%E5%AE%8C%E6%95%B4%E4%BD%BF%E7%94%A8%E6%95%99%E7%A8%8B/">
+              <span class="nav-label">Next →</span>
+              <span class="nav-title">Proxmox VE 9.2 完整使用教程 — 从安装到生产部署</span>
+            </a>
+          
+        </nav>
+      
+    </article>
+    
+    
+      <div class="related-posts">
+        <h3 class="related-title">Recent Posts</h3>
+        <div class="related-list">
+          
+            <a class="related-item" href="/post/PVE9-2%E5%AE%8C%E6%95%B4%E4%BD%BF%E7%94%A8%E6%95%99%E7%A8%8B/">
+              <span class="related-item-title">Proxmox VE 9.2 完整使用教程 — 从安装到生产部署</span>
+              <span class="related-item-date">6月 30, 2026</span>
+            </a>
+          
+            <a class="related-item" href="/post/MiGate%E9%83%A8%E7%BD%B2%E6%95%99%E7%A8%8B/">
+              <span class="related-item-title">MiGate 部署教程 — 轻量级 VPS 代理管理面板</span>
+              <span class="related-item-date">6月 29, 2026</span>
+            </a>
+          
+            <a class="related-item" href="/post/MiSub%E9%83%A8%E7%BD%B2%E6%95%99%E7%A8%8B/">
+              <span class="related-item-title">MiSub 部署教程 — 轻量级代理订阅管理面板</span>
+              <span class="related-item-date">6月 29, 2026</span>
+            </a>
+          
+        </div>
+      </div>
+    
+  </div>
+  <aside class="sidebar post-sidebar">
+    <div class="sidebar-sticky">
+      <div class="sidebar-card">
+        <div class="profile-section-title">目录</div>
+        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%9B%AE%E5%BD%95"><span class="toc-text">目录</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E9%80%89%E6%8B%A9-WireGuard"><span class="toc-text">为什么选择 WireGuard</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86"><span class="toc-text">工作原理</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AE%89%E8%A3%85-WireGuard"><span class="toc-text">安装 WireGuard</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Linux%EF%BC%88Debian-Ubuntu%EF%BC%89"><span class="toc-text">Linux（Debian &#x2F; Ubuntu）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Linux%EF%BC%88CentOS-Rocky-Linux%EF%BC%89"><span class="toc-text">Linux（CentOS &#x2F; Rocky Linux）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#macOS"><span class="toc-text">macOS</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Windows"><span class="toc-text">Windows</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9F%BA%E7%A1%80%E9%85%8D%E7%BD%AE%EF%BC%9A%E7%82%B9%E5%AF%B9%E7%82%B9%E8%BF%9E%E6%8E%A5"><span class="toc-text">基础配置：点对点连接</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%94%9F%E6%88%90%E5%AF%86%E9%92%A5%E5%AF%B9"><span class="toc-text">生成密钥对</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%8A%82%E7%82%B9-A-%E9%85%8D%E7%BD%AE%EF%BC%88%E6%9C%8D%E5%8A%A1%E5%99%A8-A%EF%BC%8C%E5%85%AC%E7%BD%91-IP-1-2-3-4%EF%BC%89"><span class="toc-text">节点 A 配置（服务器 A，公网 IP: 1.2.3.4）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%8A%82%E7%82%B9-B-%E9%85%8D%E7%BD%AE%EF%BC%88%E6%9C%8D%E5%8A%A1%E5%99%A8-B%EF%BC%8C%E5%85%AC%E7%BD%91-IP-5-6-7-8%EF%BC%89"><span class="toc-text">节点 B 配置（服务器 B，公网 IP: 5.6.7.8）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%90%AF%E5%8A%A8-WireGuard"><span class="toc-text">启动 WireGuard</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%B5%8B%E8%AF%95%E8%BF%9E%E9%80%9A%E6%80%A7"><span class="toc-text">测试连通性</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Hub-and-Spoke-%E6%98%9F%E5%9E%8B%E7%BB%84%E7%BD%91"><span class="toc-text">Hub-and-Spoke 星型组网</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%8B%93%E6%89%91"><span class="toc-text">拓扑</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Hub-%E9%85%8D%E7%BD%AE"><span class="toc-text">Hub 配置</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Spoke-%E9%85%8D%E7%BD%AE%EF%BC%88%E4%BB%A5-VPS-%E9%A6%99%E6%B8%AF%E4%B8%BA%E4%BE%8B%EF%BC%89"><span class="toc-text">Spoke 配置（以 VPS 香港为例）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%BC%80%E5%90%AF-IP-%E8%BD%AC%E5%8F%91%EF%BC%88%E6%89%80%E6%9C%89%E8%8A%82%E7%82%B9%EF%BC%89"><span class="toc-text">开启 IP 转发（所有节点）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Spoke-%E4%BA%92%E9%80%9A"><span class="toc-text">Spoke 互通</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Site-to-Site-%E7%AB%99%E7%82%B9%E5%88%B0%E7%AB%99%E7%82%B9%E7%BB%84%E7%BD%91"><span class="toc-text">Site-to-Site 站点到站点组网</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%8B%93%E6%89%91-1"><span class="toc-text">拓扑</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Site-A-%E9%85%8D%E7%BD%AE"><span class="toc-text">Site A 配置</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Site-B-%E9%85%8D%E7%BD%AE"><span class="toc-text">Site B 配置</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%B7%AF%E7%94%B1%E8%A1%A8%E5%90%8C%E6%AD%A5"><span class="toc-text">路由表同步</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%AA%8C%E8%AF%81"><span class="toc-text">验证</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%B7%AF%E7%94%B1%E8%BD%AC%E5%8F%91%E4%B8%8E-NAT"><span class="toc-text">路由转发与 NAT</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#AllowedIPs-%E8%AF%A6%E8%A7%A3"><span class="toc-text">AllowedIPs 详解</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%85%A8%E6%B5%81%E9%87%8F-VPN-%E6%A8%A1%E5%BC%8F%EF%BC%88%E8%BF%9C%E7%A8%8B%E5%8A%9E%E5%85%AC%EF%BC%89"><span class="toc-text">全流量 VPN 模式（远程办公）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Docker-%E7%8E%AF%E5%A2%83%E4%B8%8B%E7%9A%84%E9%85%8D%E7%BD%AE"><span class="toc-text">Docker 环境下的配置</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%A7%E8%83%BD%E8%B0%83%E4%BC%98"><span class="toc-text">性能调优</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#MTU-%E4%BC%98%E5%8C%96"><span class="toc-text">MTU 优化</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%A4%9A%E9%98%9F%E5%88%97"><span class="toc-text">多队列</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%86%85%E6%A0%B8%E5%8F%82%E6%95%B0%E4%BC%98%E5%8C%96"><span class="toc-text">内核参数优化</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AE%89%E5%85%A8%E5%8A%A0%E5%9B%BA"><span class="toc-text">安全加固</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E9%98%B2%E7%81%AB%E5%A2%99%E8%A7%84%E5%88%99"><span class="toc-text">1. 防火墙规则</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-%E9%99%90%E5%88%B6-Peer-%E8%AE%BF%E9%97%AE"><span class="toc-text">2. 限制 Peer 访问</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-%E5%AF%86%E9%92%A5%E7%AE%A1%E7%90%86"><span class="toc-text">3. 密钥管理</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-%E4%BD%BF%E7%94%A8-Pre-shared-Keys%EF%BC%88PSK%EF%BC%89"><span class="toc-text">4. 使用 Pre-shared Keys（PSK）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-%E6%97%A5%E5%BF%97%E7%9B%91%E6%8E%A7"><span class="toc-text">5. 日志监控</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#PVE-9-2-SDN-WireGuard-%E9%9B%86%E6%88%90"><span class="toc-text">PVE 9.2 SDN + WireGuard 集成</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%85%8D%E7%BD%AE%E6%AD%A5%E9%AA%A4"><span class="toc-text">配置步骤</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BC%98%E5%8A%BF"><span class="toc-text">优势</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%B8%B8%E7%94%A8%E7%AE%A1%E7%90%86%E5%91%BD%E4%BB%A4"><span class="toc-text">常用管理命令</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#systemd-%E6%9C%8D%E5%8A%A1%E7%AE%A1%E7%90%86"><span class="toc-text">systemd 服务管理</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%8E%92%E9%94%99%E6%8C%87%E5%8D%97"><span class="toc-text">排错指南</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Q1%EF%BC%9Awg-show-%E6%98%BE%E7%A4%BA%E5%AF%B9%E7%AB%AF%E4%B8%80%E7%9B%B4%E6%B2%A1%E6%8F%A1%E6%89%8B%EF%BC%88latest-handshake-%E5%BE%88%E4%B9%85%EF%BC%89"><span class="toc-text">Q1：wg show 显示对端一直没握手（latest handshake 很久）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Q2%EF%BC%9A%E8%83%BD-Ping-%E9%80%9A%E8%99%9A%E6%8B%9F-IP%EF%BC%8C%E4%BD%86%E8%AE%BF%E9%97%AE%E5%AF%B9%E7%AB%AF%E5%B1%80%E5%9F%9F%E7%BD%91%E4%B8%8D%E9%80%9A"><span class="toc-text">Q2：能 Ping 通虚拟 IP，但访问对端局域网不通</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Q3%EF%BC%9A%E9%80%9F%E5%BA%A6%E6%85%A2"><span class="toc-text">Q3：速度慢</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Q4%EF%BC%9A%E6%96%AD%E7%BA%BF%E9%87%8D%E8%BF%9E%E6%85%A2"><span class="toc-text">Q4：断线重连慢</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Q5%EF%BC%9ADocker-%E7%8E%AF%E5%A2%83%E4%B8%AD-WireGuard-%E4%B8%8D%E5%B7%A5%E4%BD%9C"><span class="toc-text">Q5：Docker 环境中 WireGuard 不工作</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-text">总结</span></a></li></ol>
+      </div>
+      <div class="sidebar-card">
+        <div class="profile-header">
+          <img class="avatar" src="/img/logo.png" alt="avatar">
+          <div class="profile-info">
+            <div class="profile-name">Sam</div>
+            <div class="profile-id">记录技术，分享生活。</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </aside>
+</div>
+<div class="lightbox" id="lightbox">
+  <span class="lightbox-close">&times;</span>
+  <img class="lightbox-img" id="lightboxImg" src="" alt="">
+</div>
+<button class="back-top" id="backTop" aria-label="Back to top">
+  <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 15l-6-6-6 6"/></svg>
+</button></main>
+    <footer class="footer">
+  <div class="footer-inner">
+    <p>&copy; 2026<br>Powered by Sam</p>
+  </div>
+</footer>
+<div class="search-overlay" id="searchOverlay">
+  <div class="search-modal">
+    <input class="search-input" id="searchInput" type="text" placeholder="Search posts..." autocomplete="off">
+    <div class="search-results" id="searchResults"></div>
+  </div>
+</div>
+<script>
+(function() {
+  var t = document.getElementById('themeToggle');
+  if (t) {
+    t.addEventListener('click', function() {
+      var h = document.documentElement;
+      var s = h.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+      h.setAttribute('data-theme', s);
+      try { localStorage.setItem('migo-theme', s); } catch(e) {}
+    });
+    var st = (function(){ try { return localStorage.getItem('migo-theme'); } catch(e) {} })();
+    if (st) document.documentElement.setAttribute('data-theme', st);
+  }
+
+  var m = document.getElementById('menuToggle');
+  var n = document.getElementById('nav');
+  if (m && n) {
+    m.addEventListener('click', function() {
+      n.classList.toggle('nav-open');
+      m.classList.toggle('menu-open');
+      document.body.classList.toggle('body-nav-open');
+    });
+    n.querySelectorAll('a').forEach(function(a) {
+      a.addEventListener('click', function() {
+        n.classList.remove('nav-open');
+        m.classList.remove('menu-open');
+        document.body.classList.remove('body-nav-open');
+      });
+    });
+  }
+
+  var bt = document.getElementById('backTop');
+  if (bt) {
+    window.addEventListener('scroll', function() {
+      bt.classList.toggle('visible', window.scrollY > 400);
+    });
+    bt.addEventListener('click', function() { window.scrollTo({ top: 0, behavior: 'smooth' }); });
+  }
+
+  var pb = document.getElementById('progressBar');
+  if (pb) {
+    window.addEventListener('scroll', function() {
+      var h = document.documentElement;
+      var p = (h.scrollTop || document.body.scrollTop) / ((h.scrollHeight || document.body.scrollHeight) - (h.clientHeight || document.body.clientHeight)) * 100;
+      pb.style.width = Math.min(p, 100) + '%';
+    });
+  }
+
+  document.querySelectorAll('.highlight').forEach(function(block) {
+    var btn = document.createElement('button');
+    btn.className = 'copy-btn';
+    btn.innerHTML = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>';
+    block.appendChild(btn);
+    btn.addEventListener('click', function() {
+      var code = block.querySelector('code');
+      if (!code) return;
+      var text = code.textContent;
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(text).then(function() {
+          btn.classList.add('copied');
+          btn.innerHTML = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>';
+          setTimeout(function() {
+            btn.classList.remove('copied');
+            btn.innerHTML = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>';
+          }, 2000);
+        });
+      }
+    });
+  });
+
+  var lb = document.getElementById('lightbox');
+  var lbImg = document.getElementById('lightboxImg');
+  if (lb && lbImg) {
+    document.getElementById('postContent').addEventListener('click', function(e) {
+      if (e.target.tagName === 'IMG') {
+        lbImg.src = e.target.src;
+        lb.classList.add('open');
+        document.body.style.overflow = 'hidden';
+      }
+    });
+    lb.addEventListener('click', function() {
+      lb.classList.remove('open');
+      document.body.style.overflow = '';
+    });
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape' && lb.classList.contains('open')) {
+        lb.classList.remove('open');
+        document.body.style.overflow = '';
+      }
+    });
+  }
+
+  var so = document.getElementById('searchOverlay');
+  var sb = document.getElementById('searchBtn');
+  var si = document.getElementById('searchInput');
+  var sr = document.getElementById('searchResults');
+  var searchData = [];
+  if (so && sb && si && sr) {
+    sb.addEventListener('click', function() { so.classList.add('open'); si.focus(); si.value = ''; sr.innerHTML = ''; });
+    so.addEventListener('click', function(e) { if (e.target === so) { so.classList.remove('open'); } });
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape' && so.classList.contains('open')) { so.classList.remove('open'); }
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k') { e.preventDefault(); so.classList.add('open'); si.focus(); si.value = ''; sr.innerHTML = ''; }
+    });
+    fetch('/search.xml').then(function(r) { return r.text(); }).then(function(xml) {
+      var parser = new DOMParser();
+      var doc = parser.parseFromString(xml, 'text/xml');
+      doc.querySelectorAll('entry').forEach(function(entry) {
+        searchData.push({
+          title: (entry.querySelector('title') || {}).textContent || '',
+          url: (entry.querySelector('url') || {}).textContent || '',
+          date: (entry.querySelector('published') || {}).textContent || ''
+        });
+      });
+    });
+    si.addEventListener('input', function() {
+      var q = si.value.toLowerCase().trim();
+      if (!q) { sr.innerHTML = ''; return; }
+      var results = searchData.filter(function(item) { return item.title.toLowerCase().indexOf(q) > -1; });
+      if (results.length === 0) {
+        sr.innerHTML = '<div class="search-empty">No results found</div>';
+      } else {
+        sr.innerHTML = results.map(function(item) {
+          return '<a class="search-result-item" href="' + item.url + '">' +
+            '<div class="search-result-title">' + item.title + '</div>' +
+            '<div class="search-result-meta">' + (item.date ? new Date(item.date).toLocaleDateString() : '') + '</div></a>';
+        }).join('');
+      }
+    });
+  }
+
+  var tocLinks = document.querySelectorAll('.toc .toc-link');
+  if (tocLinks.length > 0) {
+    var headings = [];
+    tocLinks.forEach(function(link) {
+      var id = link.getAttribute('href');
+      if (id) {
+        var el = document.getElementById(id.substring(1));
+        if (el) headings.push({ el: el, link: link });
+      }
+    });
+    window.addEventListener('scroll', function() {
+      var scrollY = window.scrollY + 100;
+      var current = null;
+      headings.forEach(function(h) {
+        if (h.el.offsetTop <= scrollY) current = h;
+      });
+      tocLinks.forEach(function(l) { l.classList.remove('active'); });
+      if (current) current.link.classList.add('active');
+    });
+  }
+})();
+</script>
+  </body>
+</html>
